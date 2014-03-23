@@ -7,8 +7,8 @@ public class GBankDatabase : Object {
     private HashTable<int, weak AqBanking.Account> account_cache;
 
     public GBankDatabase() {
-        user_cache = new HashTable<int, AqBanking.User>(direct_hash, direct_equal);
-        account_cache = new HashTable<int, AqBanking.Account>(direct_hash, direct_equal);
+        user_cache = new HashTable<int, AqBanking.User>.full(direct_hash, direct_equal, null, null);
+        account_cache = new HashTable<int, AqBanking.Account>.full(direct_hash, direct_equal, null, null);
 
         this.connection = Gda.Connection.open_from_string (null, "SQLite://DB_DIR=.;DB_NAME=gbank.db", null, Gda.ConnectionOptions.NONE);
         create_tables();

@@ -447,7 +447,7 @@ namespace AqBanking {
         public double get_value_as_double ();
 
         [CCode (cname = "AB_Value_GetCurrency")]
-        public string get_currency ();
+        public unowned string get_currency ();
     }
 
 
