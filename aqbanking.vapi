@@ -74,7 +74,7 @@ namespace AqBanking {
         public TanMethod first ();
     }
 
-    [CCode (cname = "AB_USER", ref_function = "AB_User_Attach", unref_function = "AB_User_free")]
+    [CCode (cname = "AB_USER", free_function = "AB_User_free")]
     [Compact]
     public class User {
 

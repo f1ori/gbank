@@ -3,8 +3,13 @@ using Gtk;
 
 public class GBankDatabase : Object {
     private Gda.Connection connection;
+    private HashTable<int, weak AqBanking.User> user_cache;
+    private HashTable<int, weak AqBanking.Account> account_cache;
 
     public GBankDatabase() {
+        user_cache = new HashTable<int, AqBanking.User>(direct_hash, direct_equal);
+        account_cache = new HashTable<int, AqBanking.Account>(direct_hash, direct_equal);
+
         this.connection = Gda.Connection.open_from_string (null, "SQLite://DB_DIR=.;DB_NAME=gbank.db", null, Gda.ConnectionOptions.NONE);
         create_tables();
     }
@@ -45,12 +50,17 @@ public class GBankDatabase : Object {
     }
 
     public unowned AqBanking.User getAqBankingUser(AqBanking.Banking banking, int user_id) {
+        weak AqBanking.User user = user_cache[user_id];
+        if (user != null) {
+            return user;
+        }
+
         Gda.DataModel user_data = this.connection.execute_select_command("SELECT user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor FROM users WHERE id = %d;".printf(user_id));
         Gda.DataModelIter user_iter = user_data.create_iter();
 
         user_iter.move_next();
 
-        unowned AqBanking.User user = banking.create_user (AqBanking.AH_PROVIDER_NAME);
+        user = banking.create_user (AqBanking.AH_PROVIDER_NAME);
         user.username    = "gbank-%d".printf(user_id);
         user.user_id     = user_iter.get_value_for_field( "user_id" ).get_string();
         user.customer_id = user_iter.get_value_for_field( "customer_id" ).get_string();
@@ -71,10 +81,16 @@ public class GBankDatabase : Object {
         if (result != 0) {
             stdout.printf("Could not add user (%d)\n", result);
         }
+        user_cache[user_id] = user;
         return user;
     }
 
     public unowned AqBanking.Account getAqBankingAccount(AqBanking.Banking banking, int account_id) {
+        weak AqBanking.Account account = account_cache[account_id];
+        if (account != null) {
+            return account;
+        }
+
         var account_data = this.connection.execute_select_command("SELECT user_id, account_type, owner_name, account_number, bank_code FROM accounts WHERE id = %d;".printf(account_id));
         var account_iter = account_data.create_iter();
 
@@ -83,7 +99,7 @@ public class GBankDatabase : Object {
         int user_id = account_iter.get_value_for_field( "user_id" ).get_int();
         unowned AqBanking.User user = getAqBankingUser(banking, user_id);
 
-        unowned AqBanking.Account account = banking.create_account (AqBanking.AH_PROVIDER_NAME);
+        account = banking.create_account (AqBanking.AH_PROVIDER_NAME);
         account.owner_name   = account_iter.get_value_for_field( "owner_name" ).get_string();
         account.account_type = AqBanking.AccountType.Bank;
         account.account_number = account_iter.get_value_for_field( "account_number" ).get_string();
@@ -92,8 +108,9 @@ public class GBankDatabase : Object {
         account.set_selected_user (user);
         int result = banking.add_account (account);
         if (result != 0) {
-            stdout.printf("add account (%d)\n", result);
+            stdout.printf("Could not add account (%d)\n", result);
         }
+        account_cache[account_id] = account;
         return account;
     }
 
@@ -125,8 +142,6 @@ public class Banking : Object {
     private AqBanking.Banking banking;
     private static unowned Gtk.Window mainwindow;
     private static HashTable<string, string> password_cache;
-    private HashTable<int, AqBanking.User> user_cache;
-    private HashTable<int, AqBanking.Account> account_cache;
 
     public static int check_cert (Gwenhywfar.Gui gui, Gwenhywfar.SSLCertDescription cert, Gwenhywfar.SyncIO sio, int32 guiid) {
         return 0;
@@ -161,9 +176,6 @@ public class Banking : Object {
     }
 
     public Banking (Gtk.Window mainwindow) {
-        user_cache = new HashTable<int, AqBanking.User>(direct_hash, direct_equal);
-        account_cache = new HashTable<int, AqBanking.Account>(direct_hash, direct_equal);
-
         Gwenhywfar.init();
         Banking.mainwindow = mainwindow;
         banking = new AqBanking.Banking("gbank", "/tmp/gbank-aqbanking", 0);
@@ -192,7 +204,6 @@ public class Banking : Object {
         provider.get_cert(user, context, false, false, false);
         provider.get_sys_id(user, context, false, false, false);
         provider.send_user_keys2(user, context, false, false, false);
-        //provider.get_accounts(user, context, false, false, false);
 
         unowned AqBanking.Account account = db.getAqBankingAccount(banking, 1);
 
