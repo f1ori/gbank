@@ -19,7 +19,7 @@ public class GBankDatabase : Object {
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO version (version) VALUES (1);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, balance, currency);");
-        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, amount, currency, purpose, other_name, other_account_number);");
+        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, date, valuta_date, amount, currency, purpose, other_name, other_account_number);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', 'de', 'pintan', 'https://***REMOVED***', 300, 1, 1);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO accounts (id, user_id, account_type, owner_name, account_number, bank_code, balance, currency) VALUES (1, 1, 'bank', 'Florian Richter', '***REMOVED***', '***REMOVED***', '1000,00', 'EUR');");
     }
@@ -115,13 +115,13 @@ public class GBankDatabase : Object {
     }
 
     public void insert_transaction(int user_id, int account_id, AqBanking.Transaction transaction) {
-        var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
-        b.set_table("transactions");
-        b.add_field_value_as_gvalue( "account_id", account_id );
-        b.add_field_value_as_gvalue( "amount", transaction.value.get_value_as_double() );
-        b.add_field_value_as_gvalue( "currency", transaction.value.get_currency() );
-        b.add_field_value_as_gvalue( "other_name", transaction.remote_name );
-        b.add_field_value_as_gvalue( "other_account_number", transaction.remote_account_number );
+        string remote_name = "";
+        unowned Gwenhywfar.StringListEntry remote_name_entry = transaction.remote_name.first_entry();
+        while (remote_name_entry != null) {
+            remote_name = "%s\n%s".printf(remote_name, remote_name_entry.data);
+            remote_name_entry = remote_name_entry.next();
+        }
+        remote_name._strip();
 
         string purpose_text = "";
         unowned Gwenhywfar.StringListEntry purpose = transaction.purpose.first_entry();
@@ -129,11 +129,54 @@ public class GBankDatabase : Object {
             purpose_text = "%s\n%s".printf(purpose_text, purpose.data);
             purpose = purpose.next();
         }
+        purpose_text._strip();
+
+        Date date = new Date();
+        date.set_time_t(transaction.date.to_time_t());
+        Date valuta_date = new Date();
+        valuta_date.set_time_t(transaction.date.to_time_t());
+
+        var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
+        b.set_table("transactions");
+        b.add_field_value_as_gvalue( "account_id", account_id );
+        b.add_field_value_as_gvalue( "transaction_type", "" );
+        b.add_field_value_as_gvalue( "date", date );
+        b.add_field_value_as_gvalue( "valuta_date", valuta_date );
+        b.add_field_value_as_gvalue( "amount", transaction.value.get_value_as_double() );
+        b.add_field_value_as_gvalue( "currency", transaction.value.get_currency() );
+        b.add_field_value_as_gvalue( "other_name", remote_name );
+        b.add_field_value_as_gvalue( "other_account_number", transaction.remote_account_number );
         b.add_field_value_as_gvalue( "purpose", purpose_text );
 
-        this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        stdout.printf( "result %d\n", result );
 
-        //stdout.printf( "%f %s, %s\n", value.get_value_as_double(), value.get_currency(), purpose_text );
+        ///stdout.printf( "%f %s, %s\n", transaction.value.get_value_as_double(), transaction.value.get_currency(), purpose_text );
+    }
+
+    public void update_liststore(int account_id, ListStore liststore) {
+        Gda.DataModel transactions_data = this.connection.execute_select_command("SELECT transaction_type, date, valuta_date, amount, currency, purpose, other_name, other_account_number FROM transactions WHERE account_id = %d;".printf(account_id));
+        Gda.DataModelIter transactions_iter = transactions_data.create_iter();
+
+        liststore.clear();
+
+        while (transactions_iter.move_next()) {
+            Date date = Date();
+            date.set_parse(transactions_iter.get_value_for_field( "date" ).get_string());
+            Date valuta_date = Date();
+            valuta_date.set_parse(transactions_iter.get_value_for_field( "valuta_date" ).get_string());
+
+            double balance = transactions_iter.get_value_for_field( "amount" ).get_double();
+            var balance_color = balance < 0 ? "red": "black";
+
+            TreeIter iter ;
+            liststore.append(out iter);
+            liststore.set (iter,
+                0, "<b>%d.%d.%d</b>\n%d.%d.%d".printf(date.get_day(), date.get_month(), date.get_year(), valuta_date.get_day(), valuta_date.get_month(), valuta_date.get_year()),
+                1, transactions_iter.get_value_for_field( "other_name" ).get_string(),
+                2, transactions_iter.get_value_for_field( "purpose" ).get_string(),
+                3, "<span color='%s' weight='bold'>%.2f €</span>".printf( balance_color, balance ) );
+        }
     }
 }
 
@@ -187,9 +230,9 @@ public class Banking : Object {
         gui.set_set_password_status_function(set_password_status);
         gui.set_check_cert_function(check_cert);
 
-        Gwenhywfar.Logger_set_level("aqhbci", Gwenhywfar.LoggerLevel.Debug);
-        Gwenhywfar.Logger_set_level("aqbanking", Gwenhywfar.LoggerLevel.Debug);
-        Gwenhywfar.Logger_set_level("gwenhywfar", Gwenhywfar.LoggerLevel.Debug);
+        // Gwenhywfar.Logger_set_level("aqhbci", Gwenhywfar.LoggerLevel.Debug);
+        // Gwenhywfar.Logger_set_level("aqbanking", Gwenhywfar.LoggerLevel.Debug);
+        // Gwenhywfar.Logger_set_level("gwenhywfar", Gwenhywfar.LoggerLevel.Debug);
         banking.init ();
         banking.online_init ();
         password_cache = new HashTable<string, string> (str_hash, str_equal);
@@ -235,6 +278,7 @@ public class Banking : Object {
             account_info = context.get_next_account_info();
         }
         password_cache.remove_all();
+        db.update_liststore(1, listmodel);
     }
 
     ~Banking() {
@@ -252,7 +296,7 @@ public class PasswordDialog : Dialog {
         this.set_transient_for (parent);
         this.set_modal (true);
         this.border_width = 5;
-        set_default_size (350, 130);
+        set_default_size (500, 180);
         var label = new Gtk.Label ("Please enter password:");
         password_entry = new Gtk.Entry();
         password_entry.input_purpose = Gtk.InputPurpose.PASSWORD;
@@ -374,21 +418,18 @@ public class MainWindow : Gtk.ApplicationWindow {
         all_accounts_row.add( all_accounts );
         account_list.add( all_accounts_row );
 
-        db.fill_account_list( account_list );
+        Gtk.ScrolledWindow treeview_scrolled = new Gtk.ScrolledWindow(null, null);
 
         transaction_listmodel = new ListStore (4, typeof (string), typeof (string), typeof (string), typeof (string));
         TreeView treeview = new TreeView ();
         treeview.set_model (transaction_listmodel);
-        treeview.insert_column_with_attributes (-1, "Datum", new CellRendererText(), "markup", 1);
-        treeview.insert_column_with_attributes (-1, "Type", new CellRendererText(), "markup", 0);
+        treeview.insert_column_with_attributes (-1, "Datum", new CellRendererText(), "markup", 0);
+        treeview.insert_column_with_attributes (-1, "Type", new CellRendererText(), "markup", 1);
         treeview.insert_column_with_attributes (-1, "Purpose", new CellRendererText(), "markup", 2);
         treeview.insert_column_with_attributes (-1, "Balance", new CellRendererText(), "markup", 3);
 
-        TreeIter iter;
-        transaction_listmodel.append (out iter);
-        transaction_listmodel.set (iter, 0, "Überweisung", 1, "1.2.2014", 2, "<b>Überweisung</b>\nGeld\nViel Geld", 3, "<b>12,22 €</b>");
-        transaction_listmodel.append (out iter);
-        transaction_listmodel.set (iter, 0, "Lastschrift", 1, "4.2.2014", 2, "Spotify", 3, "<b>5,00 €</b>");
+        db.fill_account_list( account_list );
+        db.update_liststore( 1, transaction_listmodel );
 
         Gtk.Statusbar statusbar = new Gtk.Statusbar();
 
@@ -408,7 +449,8 @@ public class MainWindow : Gtk.ApplicationWindow {
         account_header_box.pack_start(standing_orders_button, false, false);
         account_header_box.pack_end(balance_label, false, false);
         account_box.pack_start(account_header_box, false, false);
-        account_box.pack_start(treeview);
+        treeview_scrolled.add(treeview);
+        account_box.pack_start(treeview_scrolled);
         mainbox.pack_start(account_list, false);
         mainbox.pack_start(account_box, true);
         window_box.pack_start(mainbox);
