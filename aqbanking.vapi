@@ -242,6 +242,103 @@ namespace AqBanking {
 
     }
 
+    [CCode (cname = "AB_BANKINFO_SERVICE", free_function = "AB_BankInfoService_free")]
+    [Compact]
+    public class BankInfoService {
+        [CCode (cname = "AB_BankInfoService_new")]
+        public BankInfoService ();
+
+        [CCode (cname = "AB_BankInfoService_dup")]
+        public BankInfoService dup ();
+
+        [CCode (cname = "AB_BankInfoService_List_Next")]
+        public BankInfoService next ();
+ 
+        public string type {
+            [CCode (cname = "AB_BankInfoService_GetType")] get;
+            [CCode (cname = "AB_BankInfoService_SetType")] set;
+        }
+ 
+        public string address {
+            [CCode (cname = "AB_BankInfoService_GetAddress")] get;
+            [CCode (cname = "AB_BankInfoService_SetAddress")] set;
+        }
+ 
+        public string suffix {
+            [CCode (cname = "AB_BankInfoService_GetSuffix")] get;
+            [CCode (cname = "AB_BankInfoService_SetSuffix")] set;
+        }
+ 
+        public string p_version {
+            [CCode (cname = "AB_BankInfoService_GetPversion")] get;
+            [CCode (cname = "AB_BankInfoService_SetPversion")] set;
+        }
+ 
+        public string mode {
+            [CCode (cname = "AB_BankInfoService_GetMode")] get;
+            [CCode (cname = "AB_BankInfoService_SetMode")] set;
+        }
+ 
+        public uint32 user_flags {
+            [CCode (cname = "AB_BankInfoService_GetUserFlags")] get;
+            [CCode (cname = "AB_BankInfoService_SetUserFlags")] set;
+        }
+ 
+        public string h_version {
+            [CCode (cname = "AB_BankInfoService_GetHversion")] get;
+            [CCode (cname = "AB_BankInfoService_SetHversion")] set;
+        }
+ 
+        public string aux1 {
+            [CCode (cname = "AB_BankInfoService_GetAux1")] get;
+            [CCode (cname = "AB_BankInfoService_SetAux1")] set;
+        }
+ 
+        public string aux2 {
+            [CCode (cname = "AB_BankInfoService_GetAux2")] get;
+            [CCode (cname = "AB_BankInfoService_SetAux2")] set;
+        }
+ 
+        public string aux3 {
+            [CCode (cname = "AB_BankInfoService_GetAux3")] get;
+            [CCode (cname = "AB_BankInfoService_SetAux3")] set;
+        }
+ 
+        public string aux4 {
+            [CCode (cname = "AB_BankInfoService_GetAux4")] get;
+            [CCode (cname = "AB_BankInfoService_SetAux4")] set;
+        }
+   }
+
+    [CCode (cname = "AB_BANKINFO_SERVICE_LIST", free_function = "AB_BankInfoService_List_free")]
+    [Compact]
+    public class BankInfoServiceList {
+        [CCode (cname = "AB_BankInfoService_List_new")]
+        public BankInfoServiceList ();
+
+        [CCode (cname = "AB_BankInfoService_List_dup")]
+        public BankInfoServiceList dup ();
+
+        [CCode (cname = "AB_BankInfoService_List_First")]
+        public BankInfoService first ();
+
+        [CCode (cname = "AB_BankInfoService_List_Next")]
+        public static BankInfoService next (BankInfoService bank_info_service);
+    }
+
+    [CCode (cname = "AB_BANKINFO", free_function = "AB_BankInfo_free")]
+    [Compact]
+    public class BankInfo {
+        [CCode (cname = "AB_BankInfo_new")]
+        public BankInfo ();
+
+        [CCode (cname = "AB_BankInfo_dup")]
+        public BankInfo dup ();
+
+        [CCode (cname = "AB_BankInfo_GetServices")]
+        public unowned BankInfoServiceList get_services ();
+    }
+
     [CCode (cname = "AB_BANKING", free_function = "AB_Banking_free")]
     [Compact]
     public class Banking {
@@ -298,6 +395,9 @@ namespace AqBanking {
 
         [CCode (cname = "AB_Banking_ExecuteJobs")]
         public int execute_jobs (JobList joblist, ImExporterContext context);
+
+        [CCode (cname = "AB_Banking_GetBankInfo")]
+        public unowned BankInfo get_bank_info (string country, string branch_id, string bank_id);
     }
 
     [CCode (cname = "AB_ACCOUNT_TYPE", cprefix = "AB_AccountType_", has_type_id = false)]

@@ -49,7 +49,7 @@ public class GBankDatabase : Object {
         }
     }
 
-    public unowned AqBanking.User getAqBankingUser(AqBanking.Banking banking, int user_id) {
+    public unowned AqBanking.User get_aqbanking_user(AqBanking.Banking banking, int user_id) {
         weak AqBanking.User user = user_cache[user_id];
         if (user != null) {
             return user;
@@ -85,7 +85,24 @@ public class GBankDatabase : Object {
         return user;
     }
 
-    public unowned AqBanking.Account getAqBankingAccount(AqBanking.Banking banking, int account_id) {
+    public int create_user(AqBanking.User user) {
+
+        var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
+        b.set_table("accounts");
+        b.add_field_value_as_gvalue( "customer_id", user.customer_id );
+        b.add_field_value_as_gvalue( "country", user.country );
+        b.add_field_value_as_gvalue( "bank_code", user.bank_code );
+        b.add_field_value_as_gvalue( "token_type", user.token_type );
+        b.add_field_value_as_gvalue( "server_url", user.server_url );
+        b.add_field_value_as_gvalue( "hbci_version", user.hbci_version );
+        b.add_field_value_as_gvalue( "http_version_major", user.http_version_major );
+        b.add_field_value_as_gvalue( "http_version_minor", user.http_version_minor );
+
+        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        stdout.printf( "create user result %d\n", result );
+    }
+
+    public unowned AqBanking.Account get_aqbanking_account(AqBanking.Banking banking, int account_id) {
         weak AqBanking.Account account = account_cache[account_id];
         if (account != null) {
             return account;
@@ -97,7 +114,7 @@ public class GBankDatabase : Object {
         account_iter.move_next();
 
         int user_id = account_iter.get_value_for_field( "user_id" ).get_int();
-        unowned AqBanking.User user = getAqBankingUser(banking, user_id);
+        unowned AqBanking.User user = get_aqbanking_user(banking, user_id);
 
         account = banking.create_account (AqBanking.AH_PROVIDER_NAME);
         account.owner_name   = account_iter.get_value_for_field( "owner_name" ).get_string();
@@ -240,7 +257,7 @@ public class Banking : Object {
 
     public void fetch_transactions(GBankDatabase db, ListStore listmodel) {
 
-        unowned AqBanking.User user = db.getAqBankingUser(banking, 1);
+        unowned AqBanking.User user = db.get_aqbanking_user(banking, 1);
 
         unowned AqBanking.Provider provider = banking.get_provider(AqBanking.AH_PROVIDER_NAME);
         AqBanking.ImExporterContext context = new AqBanking.ImExporterContext();
@@ -248,7 +265,7 @@ public class Banking : Object {
         provider.get_sys_id(user, context, false, false, false);
         provider.send_user_keys2(user, context, false, false, false);
 
-        unowned AqBanking.Account account = db.getAqBankingAccount(banking, 1);
+        unowned AqBanking.Account account = db.get_aqbanking_account(banking, 1);
 
         var job = AqBanking.Job.new_get_transactions(account);
         int result = job.check_availability();
@@ -314,6 +331,95 @@ public class PasswordDialog : Dialog {
         ok_button.can_default = true;
         set_default (ok_button);
         show_all();
+    }
+
+}
+
+public class CreateUserWizard : Gtk.Assistant {
+    private Gtk.Box type_box;
+    private Gtk.Grid details_box;
+    private Gtk.Entry bank_code;
+    private Gtk.Entry login_id;
+
+    public CreateUserWizard(Window parent) {
+        this.set_default_size (500, 500);
+        this.set_transient_for (parent);
+        this.set_modal(true);
+        this.close.connect(this.on_close);
+        this.cancel.connect(this.on_cancel);
+
+        type_box = new Gtk.Box( Orientation.VERTICAL, 5 );
+        var type_label = new Gtk.Label( "Choose the type of user you want to create:" );
+        var type_radiobutton_hbci = new Gtk.RadioButton.with_label_from_widget (null, "HBCI User");
+        var type_radiobutton_ebics = new Gtk.RadioButton.with_label_from_widget (type_radiobutton_hbci, "EBICS User");
+        type_radiobutton_hbci.set_active(true);
+        type_box.pack_start(type_label, false, true);
+        type_box.pack_start(type_radiobutton_hbci, false, true);
+        type_box.pack_start(type_radiobutton_ebics, false, true);
+
+        this.append_page (type_box);
+        this.set_page_title (type_box, "Select Type");
+        this.set_page_type (type_box, Gtk.AssistantPageType.CONTENT);
+        this.set_page_complete (type_box, true);
+
+        details_box = new Gtk.Grid( );
+
+        details_box.attach(new Gtk.Label( "Enter Bank Code and Login Id:" ), 0, 0, 2, 1);
+
+        bank_code = new Gtk.Entry ();
+        bank_code.changed.connect(this.on_bank_code_changed);
+        details_box.attach( new Gtk.Label("Bank code"), 0, 1, 1, 1 );
+        details_box.attach( bank_code, 1, 1, 1, 1 );
+
+        login_id = new Gtk.Entry ();
+        details_box.attach( new Gtk.Label("Login Id"), 0, 2, 1, 1);
+        details_box.attach(login_id, 1, 2, 1, 1);
+
+        this.append_page (details_box);
+        this.set_page_title (details_box, "Account Details");
+        this.set_page_type (details_box, Gtk.AssistantPageType.CONTENT);
+        this.set_page_complete (details_box, false);
+
+        var summary_box = new Gtk.Box( Orientation.VERTICAL, 5 );
+        var summary_label = new Gtk.Label( "Enter Bank Code and Login Id:" );
+        summary_box.pack_start(summary_label, false, false);
+
+        this.append_page (summary_box);
+        this.set_page_title (summary_box, "Summary");
+        this.set_page_type (summary_box, Gtk.AssistantPageType.SUMMARY);
+        this.set_page_complete (summary_box, true);
+
+        this.show_all();
+    }
+
+    public void on_cancel() {
+        destroy();
+    }
+
+    public void on_close() {
+        destroy();
+        var user = banking.create_user (AqBanking.AH_PROVIDER_NAME);
+        user.username    = "gbank-test";
+        user.user_id     = this.bank_code.get_text();
+        user.customer_id = this.bank_code.get_text();
+        user.country     = "de";
+        user.bank_code   = this.bank_code.get_text();
+        user.token_type  = "pintan";
+        user.crypt_mode  = AqBanking.CryptMode.Pintan;
+        user.server_url         = Gwenhywfar.url_from_string ( "https://***REMOVED***" );
+        user.hbci_version       = 300;
+        user.http_version_major = 1;
+        user.http_version_minor = 1;
+        user.status = AqBanking.UserStatus.Enabled;
+
+        int result = banking.add_user (user);
+        if (result != 0) {
+            stdout.printf("Could not add user (%d)\n", result);
+        }
+    }
+
+    public void on_bank_code_changed() {
+        this.set_page_complete (details_box, true);
     }
 
 }
@@ -408,13 +514,15 @@ public class MainWindow : Gtk.ApplicationWindow {
         headerBar.pack_end (entry);
         this.set_titlebar (headerBar);
 
-        Gtk.ListBox account_list = new Gtk.ListBox();
+        var account_list = new Gtk.ListBox();
         account_list.width_request = 230;
-        Gtk.ListBoxRow all_accounts_row = new Gtk.ListBoxRow();
-        Gtk.Box all_accounts = new Gtk.Box( Orientation.HORIZONTAL, 20 );
+        var all_accounts_row = new Gtk.ListBoxRow();
+        var all_accounts = new Gtk.Box( Orientation.HORIZONTAL, 20 );
+        var create_account_button = new Gtk.Button.from_icon_name( "list-add", Gtk.IconSize.MENU );
+        create_account_button.clicked.connect(this.on_create_user);
         all_accounts.margin = 5;
         all_accounts.pack_start( new Gtk.Label( "All Accounts" ), false, false );
-        all_accounts.pack_end( new Gtk.Button.from_icon_name( "list-add", Gtk.IconSize.MENU ), false, false );
+        all_accounts.pack_end( create_account_button , false, false );
         all_accounts_row.add( all_accounts );
         account_list.add( all_accounts_row );
 
@@ -477,6 +585,9 @@ public class MainWindow : Gtk.ApplicationWindow {
         banking.fetch_transactions(this.db, transaction_listmodel);
     }
 
+    void on_create_user () {
+        var assistant = new CreateUserWizard(this);
+    }
 }
 
 
