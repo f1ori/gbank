@@ -1,7 +1,7 @@
 
 
 public class Banking : Object {
-    private AqBanking.Banking banking;
+    public AqBanking.Banking banking;
     private static unowned Gtk.Window mainwindow;
     private static HashTable<string, string> password_cache;
     private HashTable<int, weak AqBanking.User> user_cache;
@@ -54,9 +54,9 @@ public class Banking : Object {
         gui.set_set_password_status_function(set_password_status);
         gui.set_check_cert_function(check_cert);
 
-        // Gwenhywfar.Logger_set_level("aqhbci", Gwenhywfar.LoggerLevel.Debug);
-        // Gwenhywfar.Logger_set_level("aqbanking", Gwenhywfar.LoggerLevel.Debug);
-        // Gwenhywfar.Logger_set_level("gwenhywfar", Gwenhywfar.LoggerLevel.Debug);
+        Gwenhywfar.Logger_set_level("aqhbci", Gwenhywfar.LoggerLevel.Debug);
+        Gwenhywfar.Logger_set_level("aqbanking", Gwenhywfar.LoggerLevel.Debug);
+        Gwenhywfar.Logger_set_level("gwenhywfar", Gwenhywfar.LoggerLevel.Debug);
         banking.init ();
         banking.online_init ();
         password_cache = new HashTable<string, string> (str_hash, str_equal);

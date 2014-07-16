@@ -60,7 +60,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     private Gtk.ListBox account_list;
     private Gtk.ListStore transaction_listmodel;
-    private Banking banking;
+    public Banking banking;
     private GBankDatabase db;
 
     public MainWindow (Gtk.Application app) {

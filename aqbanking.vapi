@@ -326,6 +326,29 @@ namespace AqBanking {
         public static BankInfoService next (BankInfoService bank_info_service);
     }
 
+    [CCode (cname = "AB_BANKINFO_LIST2_ITERATOR", free_function = "AB_BankInfo_List2Iterator_free")]
+    [Compact]
+    public class BankInfoListIterator {
+        [CCode (cname = "AB_BankInfo_List2Iterator_new")]
+        public BankInfoListIterator ();
+
+        [CCode (cname = "AB_BankInfo_List2Iterator_Next")]
+        public unowned BankInfo next ();
+
+        [CCode (cname = "AB_BankInfo_List2Iterator_Data")]
+        public unowned BankInfo data ();
+    }
+
+    [CCode (cname = "AB_BANKINFO_LIST2", free_function = "AB_BankInfo_List2_free")]
+    [Compact]
+    public class BankInfoList {
+        [CCode (cname = "AB_BankInfo_List2_new")]
+        public BankInfoList ();
+
+        [CCode (cname = "AB_BankInfo_List2_First")]
+        public BankInfoListIterator first ();
+    }
+
     [CCode (cname = "AB_BANKINFO", free_function = "AB_BankInfo_free")]
     [Compact]
     public class BankInfo {
@@ -337,6 +360,76 @@ namespace AqBanking {
 
         [CCode (cname = "AB_BankInfo_GetServices")]
         public unowned BankInfoServiceList get_services ();
+ 
+        public string bank_id {
+            [CCode (cname = "AB_BankInfo_GetBankId")] get;
+            [CCode (cname = "AB_BankInfo_SetBankId")] set;
+        }
+ 
+        public string bank_name {
+            [CCode (cname = "AB_BankInfo_GetBankName")] get;
+            [CCode (cname = "AB_BankInfo_SetBankName")] set;
+        }
+ 
+        public string bic {
+            [CCode (cname = "AB_BankInfo_GetBic")] get;
+            [CCode (cname = "AB_BankInfo_SetBic")] set;
+        }
+ 
+        public string branch_id {
+            [CCode (cname = "AB_BankInfo_GetBranchId")] get;
+            [CCode (cname = "AB_BankInfo_SetBranchId")] set;
+        }
+ 
+        public string city {
+            [CCode (cname = "AB_BankInfo_GetCity")] get;
+            [CCode (cname = "AB_BankInfo_SetCity")] set;
+        }
+ 
+        public string country {
+            [CCode (cname = "AB_BankInfo_GetCountry")] get;
+            [CCode (cname = "AB_BankInfo_SetCountry")] set;
+        }
+ 
+        public string email {
+            [CCode (cname = "AB_BankInfo_GetEmail")] get;
+            [CCode (cname = "AB_BankInfo_SetEmail")] set;
+        }
+ 
+        public string fax {
+            [CCode (cname = "AB_BankInfo_GetFax")] get;
+            [CCode (cname = "AB_BankInfo_SetFax")] set;
+        }
+ 
+        public string location {
+            [CCode (cname = "AB_BankInfo_GetLocation")] get;
+            [CCode (cname = "AB_BankInfo_SetLocation")] set;
+        }
+ 
+        public string phone {
+            [CCode (cname = "AB_BankInfo_GetPhone")] get;
+            [CCode (cname = "AB_BankInfo_SetPhone")] set;
+        }
+ 
+        public string region {
+            [CCode (cname = "AB_BankInfo_GetRegion")] get;
+            [CCode (cname = "AB_BankInfo_SetRegion")] set;
+        }
+ 
+        public string street {
+            [CCode (cname = "AB_BankInfo_GetStreet")] get;
+            [CCode (cname = "AB_BankInfo_SetStreet")] set;
+        }
+ 
+        public string website {
+            [CCode (cname = "AB_BankInfo_GetWebsite")] get;
+            [CCode (cname = "AB_BankInfo_SetWebsite")] set;
+        }
+ 
+        public string zipcode {
+            [CCode (cname = "AB_BankInfo_GetZipcode")] get;
+            [CCode (cname = "AB_BankInfo_SetZipcode")] set;
+        }
     }
 
     [CCode (cname = "AB_BANKING", free_function = "AB_Banking_free")]
@@ -397,7 +490,10 @@ namespace AqBanking {
         public int execute_jobs (JobList joblist, ImExporterContext context);
 
         [CCode (cname = "AB_Banking_GetBankInfo")]
-        public unowned BankInfo get_bank_info (string country, string branch_id, string bank_id);
+        public BankInfo get_bank_info (string country, string branch_id, string bank_id);
+
+        [CCode (cname = "AB_Banking_GetBankInfoByTemplate")]
+        public int get_bank_info_by_template (string country, BankInfo bank_info_template, BankInfoList list);
     }
 
     [CCode (cname = "AB_ACCOUNT_TYPE", cprefix = "AB_AccountType_", has_type_id = false)]
