@@ -18,8 +18,7 @@ public class BankListRow : Gtk.ListBoxRow {
 public class CreateUserWizard : Gtk.Assistant {
     private Gtk.Box type_page;
     private Gtk.Box bank_page;
-    private Gtk.Grid details_box;
-    private Gtk.Entry bank_code;
+    private Gtk.Grid login_details_box;
     private Gtk.Entry login_id;
     private Gtk.Entry bank_search;
     private Gtk.TreeView bank_list;
@@ -46,7 +45,7 @@ public class CreateUserWizard : Gtk.Assistant {
         type_page.pack_start(type_radiobutton_ebics, false, true);
 
         this.append_page (type_page);
-        this.set_page_title (type_page, "Select Type");
+        this.set_page_title (type_page, "Choose Type");
         this.set_page_type (type_page, Gtk.AssistantPageType.CONTENT);
         this.set_page_complete (type_page, true);
 
@@ -63,6 +62,7 @@ public class CreateUserWizard : Gtk.Assistant {
         var bankinfo_template = new AqBanking.BankInfo();
         var bank_info_list = new AqBanking.BankInfoList();
 
+        // fill bank list model
         main_window.banking.banking.get_bank_info_by_template( "de", bankinfo_template, bank_info_list );
         var bankinfo_iterator = bank_info_list.first();
         unowned AqBanking.BankInfo bankinfo = bankinfo_iterator.data();
@@ -77,6 +77,7 @@ public class CreateUserWizard : Gtk.Assistant {
         }
         bank_list_filtered.set_visible_func(this.on_filter_bank_list);
 
+        // prepare bank list widget
         bank_list = new Gtk.TreeView ();
         bank_list.set_model( bank_list_filtered );
         bank_list.insert_column_with_attributes( -1, "BLZ", new Gtk.CellRendererText(), "text", 0 );
@@ -92,38 +93,51 @@ public class CreateUserWizard : Gtk.Assistant {
         bank_page.pack_start( bank_list_scrolled, true, true );
 
         this.append_page ( bank_page );
-        this.set_page_title ( bank_page, "Select Bank" );
+        this.set_page_title ( bank_page, "Choose Bank" );
         this.set_page_type ( bank_page, Gtk.AssistantPageType.CONTENT );
         this.set_page_complete ( bank_page, false );
 
         // enter login information
-        details_box = new Gtk.Grid( );
+        login_details_box = new Gtk.Grid( );
+        login_details_box.set_row_spacing(4);
+        login_details_box.set_column_spacing(4);
 
-        details_box.attach(new Gtk.Label( "Enter Bank Code and Login Id:" ), 0, 0, 2, 1);
-
-        bank_code = new Gtk.Entry ();
-        bank_code.changed.connect(this.on_bank_code_changed);
-        details_box.attach( new Gtk.Label("Bank code"), 0, 1, 1, 1 );
-        details_box.attach( bank_code, 1, 1, 1, 1 );
+        login_details_box.attach(new Gtk.Label( "Enter Bank Account Number or Login Id:" ), 0, 0, 2, 1);
 
         login_id = new Gtk.Entry ();
-        details_box.attach( new Gtk.Label("Login Id"), 0, 2, 1, 1);
-        details_box.attach(login_id, 1, 2, 1, 1);
+        login_id.changed.connect(this.on_login_id_changed);
+        login_details_box.attach( new Gtk.Label("Login Id"), 0, 1, 1, 1);
+        login_details_box.attach(login_id, 1, 1, 1, 1);
 
-        this.append_page (details_box);
-        this.set_page_title (details_box, "Account Details");
-        this.set_page_type (details_box, Gtk.AssistantPageType.CONTENT);
-        this.set_page_complete (details_box, false);
+        var test_button = new Gtk.Button.with_label("Test");
+        test_button.clicked.connect(this.on_test_button_clicked);
+        login_details_box.attach(test_button, 1, 2, 1, 1);
+
+        this.append_page (login_details_box);
+        this.set_page_title (login_details_box, "Enter Login Id");
+        this.set_page_type (login_details_box, Gtk.AssistantPageType.CONTENT);
+        this.set_page_complete (login_details_box, false);
 
         // summary page
-        var summary_box = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
-        var summary_label = new Gtk.Label( "Enter Bank Code and Login Id:" );
-        summary_box.pack_start(summary_label, false, false);
+        var select_account_box = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
+        var select_account_label = new Gtk.Label( "Following accounts will be created:" );
+        select_account_box.pack_start(select_account_label, false, false);
+        var account_list = new Gtk.ListBox();
+        var test_row_box = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 4 );
+        var test_row_checkbox = new Gtk.CheckButton();
+        test_row_checkbox.set_active(true);
+        test_row_box.pack_start(test_row_checkbox, false, false);
+        var test_row_label = new Gtk.Label("5406066893");
+        test_row_box.pack_start(test_row_label, true, true);
+        var test_row = new Gtk.ListBoxRow();
+        test_row.add(test_row_box);
+        account_list.add(test_row);
+        select_account_box.pack_start(account_list, true, true);
 
-        this.append_page (summary_box);
-        this.set_page_title (summary_box, "Summary");
-        this.set_page_type (summary_box, Gtk.AssistantPageType.SUMMARY);
-        this.set_page_complete (summary_box, true);
+        this.append_page (select_account_box);
+        this.set_page_title (select_account_box, "Choose Bank Accounts");
+        this.set_page_type (select_account_box, Gtk.AssistantPageType.CONFIRM);
+        this.set_page_complete (select_account_box, true);
 
         this.show_all();
     }
@@ -137,18 +151,18 @@ public class CreateUserWizard : Gtk.Assistant {
         // TODO save
     }
 
-    public void on_bank_code_changed() {
-        this.set_page_complete (details_box, true);
+    public void on_login_id_changed() {
+        this.set_page_complete( login_details_box, this.login_id.get_text() != "" );
     }
 
     public void on_bank_search_changed() {
         this.bank_list_filtered.refilter();
     }
 
-    public bool on_filter_bank_list(Gtk.TreeModel model, Gtk.TreeIter iter) {
+    public bool on_filter_bank_list( Gtk.TreeModel model, Gtk.TreeIter iter ) {
         string blz, name;
-        model.get(iter, 0, out blz);
-        model.get(iter, 1, out name);
+        model.get( iter, 0, out blz );
+        model.get( iter, 1, out name );
 
         string search_string = this.bank_search.get_text().down();
         foreach ( string keyword in search_string.split( " " ) ) {
@@ -164,7 +178,12 @@ public class CreateUserWizard : Gtk.Assistant {
     }
 
     public void on_bank_list_row_activated(Gtk.TreePath path, Gtk.TreeViewColumn column) {
-        stdout.printf("activated\n");
+        this.next_page();
+    }
+
+    public void on_test_button_clicked() {
+        stdout.printf("test");
+        this.set_page_complete (login_details_box, true);
     }
 
 }
