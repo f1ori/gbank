@@ -38,6 +38,18 @@ namespace Gwenhywfar {
         [CCode (cname = "GWEN_GUI_CHECKCERT_FN", has_target = false, has_type_id = false)]
         public delegate int CheckCertFn (Gui gui, SSLCertDescription cert, SyncIO sio, int32 guiid);
 
+        [CCode (cname = "GWEN_GUI_PROGRESS_LOG_FN", has_target = false, has_type_id = false)]
+        public delegate int ProgressLogFn (Gui gui, int id, LoggerLevel level, string text);
+
+        [CCode (cname = "GWEN_GUI_PROGRESS_START_FN", has_target = false, has_type_id = false)]
+        public delegate int ProgressStartFn (Gui gui, int progressFlags, string title, string text, uint64 total, uint32 guiid);
+
+        [CCode (cname = "GWEN_GUI_PROGRESS_ADVANCE_FN", has_target = false, has_type_id = false)]
+        public delegate int ProgressAdvanceFn (Gui gui, uint32 id, uint64 progress);
+
+        [CCode (cname = "GWEN_GUI_PROGRESS_SETTOTAL_FN", has_target = false, has_type_id = false)]
+        public delegate int ProgressSetTotalFn (Gui gui, uint32 id, uint64 total);
+
         [CCode (cname = "GWEN_Gui_SetGui")]
         public static void setGui (Gui gui);
 
@@ -55,6 +67,18 @@ namespace Gwenhywfar {
 
         [CCode (cname = "GWEN_Gui_SetCheckCertFn")]
         public CheckCertFn set_check_cert_function (CheckCertFn func);
+
+        [CCode (cname = "GWEN_Gui_SetProgressLogFn")]
+        public ProgressLogFn set_progress_log_function (ProgressLogFn func);
+
+        [CCode (cname = "GWEN_Gui_SetProgressStartFn")]
+        public ProgressLogFn set_progress_start_function (ProgressStartFn func);
+
+        [CCode (cname = "GWEN_Gui_SetProgressAdvanceFn")]
+        public ProgressLogFn set_progress_advance_function (ProgressAdvanceFn func);
+
+        [CCode (cname = "GWEN_Gui_SetProgressSetTotalFn")]
+        public ProgressLogFn set_progress_set_total_function (ProgressSetTotalFn func);
     }
 
     [CCode (cname = "GWEN_SSLCERTDESCR", free_function = "GWEN_SslCertDescr_free")]

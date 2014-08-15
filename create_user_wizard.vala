@@ -24,6 +24,8 @@ public class CreateUserWizard : Gtk.Assistant {
     private Gtk.TreeView bank_list;
     private Gtk.TreeModelFilter bank_list_filtered;
     private MainWindow main_window;
+    private bool login_ok;
+    private Gtk.Image login_ok_image;
 
     public CreateUserWizard(MainWindow main_window) {
         this.main_window = main_window;
@@ -106,8 +108,11 @@ public class CreateUserWizard : Gtk.Assistant {
 
         login_id = new Gtk.Entry ();
         login_id.changed.connect(this.on_login_id_changed);
+        login_ok = false;
+        login_ok_image = new Gtk.Image();
         login_details_box.attach( new Gtk.Label("Login Id"), 0, 1, 1, 1);
         login_details_box.attach(login_id, 1, 1, 1, 1);
+        login_details_box.attach(login_ok_image, 2, 1, 1, 1);
 
         var test_button = new Gtk.Button.with_label("Test");
         test_button.clicked.connect(this.on_test_button_clicked);
@@ -152,7 +157,9 @@ public class CreateUserWizard : Gtk.Assistant {
     }
 
     public void on_login_id_changed() {
-        this.set_page_complete( login_details_box, this.login_id.get_text() != "" );
+        this.login_ok = false;
+        this.login_ok_image.clear();
+        this.set_page_complete( login_details_box, false );
     }
 
     public void on_bank_search_changed() {
@@ -182,8 +189,43 @@ public class CreateUserWizard : Gtk.Assistant {
     }
 
     public void on_test_button_clicked() {
-        stdout.printf("test");
-        this.set_page_complete (login_details_box, true);
+        stdout.printf( "test" );
+        List<Account> account_list = new List<Account>();
+
+        Gtk.TreeModel model;
+        Gtk.TreeIter iter;
+        this.bank_list.get_selection().get_selected(out model, out iter);
+        string blz, name;
+        model.get( iter, 0, out blz );
+        model.get( iter, 1, out name );
+
+        var services = main_window.banking.banking.get_bank_info("de", "", blz).get_services();
+
+        User user = new User();
+        user.id = -1;
+        user.user_id = this.login_id.get_text();
+        user.customer_id = this.login_id.get_text();
+        user.country = "de";
+        user.bank_code = blz;
+        user.token_type = "pintan";
+        printf("address: %s", service.address);
+        user.server_url = service.address;
+        user.hbci_version = 300;
+        user.http_version_major = 1;
+        user.http_version_minor = 1;
+
+        var result = this.main_window.banking.check_user( user , ref account_list );
+        stdout.printf( "num accounts %u\n", account_list.length() );
+        foreach ( Account account in account_list ) {
+            stdout.printf( "%s\n", account.account_number );
+        }
+        login_ok = result;
+        if( login_ok ) {
+            this.login_ok_image.set_from_icon_name("gtk-yes", Gtk.IconSize.BUTTON);
+        } else {
+            this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON);
+        }
+        this.set_page_complete ( login_details_box, result );
     }
 
 }

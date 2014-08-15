@@ -5,9 +5,24 @@ namespace AqBanking {
     [CCode (cname = "AH_PROVIDER_NAME")]
     public string AH_PROVIDER_NAME;
 
-    [CCode (cname = "AB_ACCOUNT_LIST2", free_function = "AB_Banking_free")]
+    [CCode (cname = "AB_ACCOUNT_LIST2", free_function = "AB_Account_List2_free")]
     [Compact]
     public class AccountList {
+
+        [CCode (cname = "AB_Account_List2_First")]
+        public AccountListIterator first();
+
+    }
+
+    [CCode (cname = "AB_ACCOUNT_LIST2_ITERATOR", free_function = "AB_Account_List2Iterator_free")]
+    [Compact]
+    public class AccountListIterator {
+
+        [CCode (cname = "AB_Account_List2Iterator_Data")]
+        public unowned Account? data();
+
+        [CCode (cname = "AB_Account_List2Iterator_Next")]
+        public unowned Account? next();
 
     }
 
@@ -579,6 +594,9 @@ namespace AqBanking {
 
         [CCode (cname = "AB_Account_SetSelectedUser")]
         public void set_selected_user (User user);
+
+        [CCode (cname = "AB_Account_GetFirstSelectedUser")]
+        public User get_first_selected_user ();
     }
 
 

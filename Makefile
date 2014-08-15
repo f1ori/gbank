@@ -1,5 +1,5 @@
 VAPIFILES=gwenhywfar.vapi aqbanking.vapi
-VALAFILES=gbank.vala password_dialog.vala banking.vala database.vala create_user_wizard.vala main_window.vala
+VALAFILES=gbank.vala password_dialog.vala banking.vala database.vala create_user_wizard.vala bank_job_window.vala main_window.vala
 
 all: gbank
 

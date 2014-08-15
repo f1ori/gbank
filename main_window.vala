@@ -68,7 +68,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         db = new GBankDatabase();
 
-        banking = new Banking(this);
+        banking = new Banking(new BankJobWindow(this));
 
         this.set_default_size ( 800, 600 );
         //this.icon = IconTheme.get_default ().load_icon ("my-app", 48, 0);

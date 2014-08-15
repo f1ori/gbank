@@ -2,7 +2,8 @@
 
 public class Banking : Object {
     public AqBanking.Banking banking;
-    private static unowned Gtk.Window mainwindow;
+    private static unowned BankJobWindow bank_job_window;
+    private static uint64 progress_total = 1;
     private static HashTable<string, string> password_cache;
     private HashTable<int, weak AqBanking.User> user_cache;
     private HashTable<int, weak AqBanking.Account> account_cache;
@@ -17,7 +18,7 @@ public class Banking : Object {
             Posix.strcpy(buffer, password);
             return 0;
         }
-        PasswordDialog dialog = new PasswordDialog(mainwindow);
+        PasswordDialog dialog = new PasswordDialog(bank_job_window);
         dialog.password_entry.max_length = max_len;
         switch (dialog.run()) {
             case Gtk.ResponseType.OK:
@@ -39,20 +40,49 @@ public class Banking : Object {
         return 0;
     }
 
-    public Banking (Gtk.Window mainwindow) {
+    public static int progress_log(Gwenhywfar.Gui gui, int id, Gwenhywfar.LoggerLevel level, string text) {
+        bank_job_window.add_log_line( text );
+        MainContext.default().iteration( false );
+        return 0;
+    }
+
+    public static int progress_start(Gwenhywfar.Gui gui, int progressFlags, string title, string text, uint64 total, uint32 guiid) {
+        progress_total = total;
+        MainContext.default().iteration( false );
+        return 0;
+    }
+
+    public static int progress_advance (Gwenhywfar.Gui gui, uint32 id, uint64 progress) {
+        //stdout.printf( "%" + uint64.FORMAT + " / %" +  uint64.FORMAT + " \n", progress, progress_total );
+        bank_job_window.set_fraction( 1.0 * progress / progress_total );
+        MainContext.default().iteration( false );
+        return 0;
+    }
+
+    public static int progress_set_total (Gwenhywfar.Gui gui, uint32 id, uint64 total) {
+        progress_total = total;
+        MainContext.default().iteration( false );
+        return 0;
+    }
+
+    public Banking (BankJobWindow bank_job_window) {
         user_cache = new HashTable<int, AqBanking.User>.full(direct_hash, direct_equal, null, null);
         account_cache = new HashTable<int, AqBanking.Account>.full(direct_hash, direct_equal, null, null);
 
         Gwenhywfar.init();
-        Banking.mainwindow = mainwindow;
+        Banking.bank_job_window = bank_job_window;
         banking = new AqBanking.Banking("gbank", "/tmp/gbank-aqbanking", 0);
 
         Gwenhywfar.Gui gui = Gwenhywfar.Gui.new_cgui();
-        gui.add_flags(Gwenhywfar.Gui.GuiFlags.NONINTERACTIVE);
-        Gwenhywfar.Gui.setGui (gui);
-        gui.set_get_password_function(get_password);
-        gui.set_set_password_status_function(set_password_status);
-        gui.set_check_cert_function(check_cert);
+        gui.add_flags( Gwenhywfar.Gui.GuiFlags.NONINTERACTIVE );
+        Gwenhywfar.Gui.setGui ( gui );
+        gui.set_get_password_function( get_password );
+        gui.set_set_password_status_function( set_password_status );
+        gui.set_check_cert_function( check_cert );
+        gui.set_progress_log_function( progress_log );
+        gui.set_progress_start_function( progress_start );
+        gui.set_progress_advance_function( progress_advance );
+        gui.set_progress_set_total_function( progress_set_total );
 
         Gwenhywfar.Logger_set_level("aqhbci", Gwenhywfar.LoggerLevel.Debug);
         Gwenhywfar.Logger_set_level("aqbanking", Gwenhywfar.LoggerLevel.Debug);
@@ -93,6 +123,45 @@ public class Banking : Object {
         db_transaction.other_account_number = aq_transaction.remote_account_number;
         db_transaction.purpose = purpose_text;
         return db_transaction;
+    }
+
+    public bool check_user( User user, ref List<Account> accounts ) {
+
+        bank_job_window.show_all();
+
+        unowned AqBanking.User aq_user = to_aq_user( user );
+
+        unowned AqBanking.Provider provider = banking.get_provider( AqBanking.AH_PROVIDER_NAME );
+        AqBanking.ImExporterContext context = new AqBanking.ImExporterContext();
+        // TODO: check return values
+        stdout.printf("cert\n");
+        if (provider.get_cert( aq_user, context, false, false, false ) != 0) {
+            return false;
+        }
+        stdout.printf("sys_id\n");
+        if (provider.get_sys_id( aq_user, context, false, false, false ) != 0) {
+            return false;
+        }
+        //stdout.printf("user_keys");
+        //provider.send_user_keys2( aq_user, context, false, false, false );
+        stdout.printf("fertig\n");
+
+        var list = banking.get_accounts();
+        if( list != null ) {
+            var iter = list.first();
+            unowned AqBanking.Account? aq_account = iter.data();
+
+            while( aq_account != null ) {
+                // TODO filter for account
+                Account account = new Account();
+                account.id = -1;
+                account.account_number = aq_account.account_number;
+                accounts.append( account );
+                aq_account = iter.next();
+            }
+        }
+        bank_job_window.close();
+        return true;
     }
 
     public void fetch_transactions(User user, Account account, GBankDatabase db) throws Error {
@@ -162,7 +231,9 @@ public class Banking : Object {
         if (result != 0) {
             stdout.printf("Could not add user (%d)\n", result);
         }
-        user_cache[user.id] = aq_user;
+        if ( user.id != -1 ) {
+            user_cache[user.id] = aq_user;
+        }
         return aq_user;
     }
 
