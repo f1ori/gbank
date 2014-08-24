@@ -34,6 +34,7 @@ public class User : Object {
         builder.add_field_value_as_gvalue( "customer_id", this.customer_id );
         builder.add_field_value_as_gvalue( "country", this.country );
         builder.add_field_value_as_gvalue( "bank_code", this.bank_code );
+        builder.add_field_value_as_gvalue( "bank_name", this.bank_name );
         builder.add_field_value_as_gvalue( "token_type", this.token_type );
         builder.add_field_value_as_gvalue( "server_url", this.server_url );
         builder.add_field_value_as_gvalue( "hbci_version", this.hbci_version );
@@ -64,6 +65,16 @@ public class Account : Object {
         account.balance      = iter.get_value_for_field( "balance" ).get_string();
         account.currency     = iter.get_value_for_field( "currency" ).get_string();
         return account;
+    }
+
+    public void set_fields(Gda.SqlBuilder builder) {
+        builder.add_field_value_as_gvalue( "user_id", this.user_id );
+        builder.add_field_value_as_gvalue( "account_type", this.account_type );
+        builder.add_field_value_as_gvalue( "owner_name", this.owner_name );
+        builder.add_field_value_as_gvalue( "account_number", this.account_number );
+        builder.add_field_value_as_gvalue( "bank_code", this.bank_code );
+        builder.add_field_value_as_gvalue( "balance", this.balance );
+        builder.add_field_value_as_gvalue( "currency", this.currency );
     }
 }
 
@@ -145,13 +156,24 @@ public class GBankDatabase : Object {
         return list;
     }
 
-    public void insert_user(User user) throws Error {
+    public void insert_user(ref User user) throws Error {
         var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
         b.set_table("users");
         user.set_fields( b );
 
+        Gda.Set inserted_row;
+        var result = this.connection.statement_execute_non_select(b.get_statement(), null, out inserted_row );
+        user.id = inserted_row.get_holder_value("+0").get_int();
+        stdout.printf( "create user result %d %d\n", result, user.id );
+    }
+
+    public void insert_account(ref Account account) throws Error {
+        var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
+        b.set_table("accounts");
+        account.set_fields( b );
+
         var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
-        stdout.printf( "create user result %d\n", result );
+        stdout.printf( "create account result %d\n", result );
     }
 
     public Account get_account(int id) throws Error {

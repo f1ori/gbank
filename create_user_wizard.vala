@@ -26,6 +26,16 @@ public class CreateUserWizard : Gtk.Assistant {
     private MainWindow main_window;
     private bool login_ok;
     private Gtk.Image login_ok_image;
+    private User user;
+    private Gtk.ListStore account_list_store;
+    private Gtk.TreeView account_list_view;
+
+    private enum AccountListColumns {
+        TOGGLE,
+        TEXT,
+        ACCOUNT,
+        N_COLUMNS
+    }
 
     public CreateUserWizard(MainWindow main_window) {
         this.main_window = main_window;
@@ -35,6 +45,15 @@ public class CreateUserWizard : Gtk.Assistant {
         this.close.connect(this.on_close);
         this.cancel.connect(this.on_cancel);
 
+        this.setup_type_page();
+        this.setup_bank_page();
+        this.setup_login_page();
+        this.setup_accounts_page();
+
+        this.show_all();
+    }
+
+    private void setup_type_page() {
         // select account type
         type_page = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
         var type_label = new Gtk.Label( "Choose the type of user you want to create:" );
@@ -50,7 +69,9 @@ public class CreateUserWizard : Gtk.Assistant {
         this.set_page_title (type_page, "Choose Type");
         this.set_page_type (type_page, Gtk.AssistantPageType.CONTENT);
         this.set_page_complete (type_page, true);
+    }
 
+    private void setup_bank_page() {
         // select bank
         bank_page = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
         var bank_label = new Gtk.Label( "Select your bank" );
@@ -98,7 +119,9 @@ public class CreateUserWizard : Gtk.Assistant {
         this.set_page_title ( bank_page, "Choose Bank" );
         this.set_page_type ( bank_page, Gtk.AssistantPageType.CONTENT );
         this.set_page_complete ( bank_page, false );
+    }
 
+    private void setup_login_page() {
         // enter login information
         login_details_box = new Gtk.Grid( );
         login_details_box.set_row_spacing(4);
@@ -122,29 +145,43 @@ public class CreateUserWizard : Gtk.Assistant {
         this.set_page_title (login_details_box, "Enter Login Id");
         this.set_page_type (login_details_box, Gtk.AssistantPageType.CONTENT);
         this.set_page_complete (login_details_box, false);
+    }
 
-        // summary page
+    private void setup_accounts_page() {
+        // select accounts page
         var select_account_box = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
         var select_account_label = new Gtk.Label( "Following accounts will be created:" );
         select_account_box.pack_start(select_account_label, false, false);
-        var account_list = new Gtk.ListBox();
-        var test_row_box = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 4 );
-        var test_row_checkbox = new Gtk.CheckButton();
-        test_row_checkbox.set_active(true);
-        test_row_box.pack_start(test_row_checkbox, false, false);
-        var test_row_label = new Gtk.Label("5406066893");
-        test_row_box.pack_start(test_row_label, true, true);
-        var test_row = new Gtk.ListBoxRow();
-        test_row.add(test_row_box);
-        account_list.add(test_row);
-        select_account_box.pack_start(account_list, true, true);
+        account_list_store = new Gtk.ListStore(AccountListColumns.N_COLUMNS, typeof (bool), typeof (string), typeof(Account));
+        account_list_view = new Gtk.TreeView.with_model (account_list_store);
+
+        var toggle = new Gtk.CellRendererToggle ();
+        toggle.toggled.connect ((toggle, path) => {
+            var tree_path = new Gtk.TreePath.from_string (path);
+            Gtk.TreeIter iter;
+            account_list_store.get_iter (out iter, tree_path);
+            account_list_store.set (iter, AccountListColumns.TOGGLE, !toggle.active);
+        });
+
+        var column = new Gtk.TreeViewColumn ();
+        column.pack_start (toggle, false);
+        column.add_attribute (toggle, "active", AccountListColumns.TOGGLE);
+        account_list_view.append_column (column);
+
+        var text = new Gtk.CellRendererText ();
+        column = new Gtk.TreeViewColumn ();
+        column.pack_start (text, true);
+        column.add_attribute (text, "text", AccountListColumns.TEXT);
+        account_list_view.append_column (column);
+
+        account_list_view.set_headers_visible (false);
+
+        select_account_box.pack_start(account_list_view, true, true);
 
         this.append_page (select_account_box);
         this.set_page_title (select_account_box, "Choose Bank Accounts");
         this.set_page_type (select_account_box, Gtk.AssistantPageType.CONFIRM);
         this.set_page_complete (select_account_box, true);
-
-        this.show_all();
     }
 
     public void on_cancel() {
@@ -152,8 +189,23 @@ public class CreateUserWizard : Gtk.Assistant {
     }
 
     public void on_close() {
+        // save
+        main_window.db.insert_user(ref user);
+
+        Gtk.TreeIter iter;
+        for (bool next = account_list_store.get_iter_first (out iter); next; next = account_list_store.iter_next (ref iter)) {
+            Value active;
+            account_list_store.get_value (iter, AccountListColumns.TOGGLE, out active);
+            if (active.get_boolean()) {
+                Value gvalue_account;
+                account_list_store.get_value (iter, AccountListColumns.ACCOUNT, out gvalue_account);
+                Account account = gvalue_account.get_object() as Account;
+                account.user_id = user.id;
+                main_window.db.insert_account( ref account );
+            }
+        }
+        // TODO update balance
         destroy();
-        // TODO save
     }
 
     public void on_login_id_changed() {
@@ -190,7 +242,7 @@ public class CreateUserWizard : Gtk.Assistant {
 
     public void on_test_button_clicked() {
         stdout.printf( "test" );
-        List<Account> account_list = new List<Account>();
+        List<Account> accounts = new List<Account>();
 
         Gtk.TreeModel model;
         Gtk.TreeIter iter;
@@ -199,25 +251,43 @@ public class CreateUserWizard : Gtk.Assistant {
         model.get( iter, 0, out blz );
         model.get( iter, 1, out name );
 
-        var services = main_window.banking.banking.get_bank_info("de", "", blz).get_services();
+        // be sure to keep a reference to bank_info while iterating the services
+        var bank_info = main_window.banking.banking.get_bank_info("de", "", blz);
+        unowned AqBanking.BankInfoServiceList services = bank_info.get_services();
+        unowned AqBanking.BankInfoService? service = services.first();
+        while(service != null && service.mode != "PINTAN") {
+           service = service.next();
+        }
+        if (service == null) {
+            // TODO hint url unknown!!
+            stdout.printf("url not found\n");
+            this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON); 
+            this.set_page_complete ( login_details_box, false );
+            return;
+        }
 
-        User user = new User();
+        user = new User();
         user.id = -1;
         user.user_id = this.login_id.get_text();
         user.customer_id = this.login_id.get_text();
         user.country = "de";
         user.bank_code = blz;
+        user.bank_name = bank_info.bank_name;
         user.token_type = "pintan";
-        printf("address: %s", service.address);
         user.server_url = service.address;
         user.hbci_version = 300;
         user.http_version_major = 1;
         user.http_version_minor = 1;
 
-        var result = this.main_window.banking.check_user( user , ref account_list );
-        stdout.printf( "num accounts %u\n", account_list.length() );
-        foreach ( Account account in account_list ) {
+        account_list_store.clear();
+
+        var result = this.main_window.banking.check_user( user , ref accounts );
+        stdout.printf( "num accounts %u\n", accounts.length() );
+        foreach ( Account account in accounts ) {
             stdout.printf( "%s\n", account.account_number );
+
+            account_list_store.append (out iter);
+            account_list_store.set (iter, AccountListColumns.TOGGLE, true, AccountListColumns.TEXT, account.account_number, AccountListColumns.ACCOUNT, account);
         }
         login_ok = result;
         if( login_ok ) {

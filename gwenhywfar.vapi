@@ -50,6 +50,9 @@ namespace Gwenhywfar {
         [CCode (cname = "GWEN_GUI_PROGRESS_SETTOTAL_FN", has_target = false, has_type_id = false)]
         public delegate int ProgressSetTotalFn (Gui gui, uint32 id, uint64 total);
 
+        [CCode (cname = "GWEN_GUI_WAITFORSOCKETS_FN", has_target = false, has_type_id = false)]
+        public delegate int WaitForSocketsFn (Gui gui, SocketList readSockets, SocketList writeSockets, int msecs, uint32 guiid);
+
         [CCode (cname = "GWEN_Gui_SetGui")]
         public static void setGui (Gui gui);
 
@@ -72,13 +75,16 @@ namespace Gwenhywfar {
         public ProgressLogFn set_progress_log_function (ProgressLogFn func);
 
         [CCode (cname = "GWEN_Gui_SetProgressStartFn")]
-        public ProgressLogFn set_progress_start_function (ProgressStartFn func);
+        public ProgressStartFn set_progress_start_function (ProgressStartFn func);
 
         [CCode (cname = "GWEN_Gui_SetProgressAdvanceFn")]
-        public ProgressLogFn set_progress_advance_function (ProgressAdvanceFn func);
+        public ProgressAdvanceFn set_progress_advance_function (ProgressAdvanceFn func);
 
         [CCode (cname = "GWEN_Gui_SetProgressSetTotalFn")]
-        public ProgressLogFn set_progress_set_total_function (ProgressSetTotalFn func);
+        public ProgressSetTotalFn set_progress_set_total_function (ProgressSetTotalFn func);
+
+        [CCode (cname = "GWEN_Gui_SetWaitForSocketsFn")]
+        public WaitForSocketsFn set_wait_for_sockets_function (WaitForSocketsFn func);
     }
 
     [CCode (cname = "GWEN_SSLCERTDESCR", free_function = "GWEN_SslCertDescr_free")]
@@ -210,5 +216,25 @@ namespace Gwenhywfar {
         [CCode (cname = "GWEN_Time_toTime_t")]
         public time_t to_time_t ();
 
+    }
+
+    [CCode (cname = "GWEN_SOCKET_LIST2", free_function = "GWEN_Socket_List2_free")]
+    [Compact]
+    public class SocketList {
+
+        [CCode (cname = "GWEN_Socket_List2_dup")]
+        public StringList dup ();
+
+        [CCode (cname = "GWEN_StringList_FirstString")]
+        public unowned string first_string ();
+
+        [CCode (cname = "GWEN_StringList_StringAt")]
+        public unowned string string_at (int idx);
+
+        [CCode (cname = "GWEN_StringList_FirstEntry")]
+        public unowned StringListEntry first_entry ();
+
+        //[CCode (cname = "GWEN_StringList_ForEach")]
+        //public unowned void for_each (func, user_data);
     }
 }

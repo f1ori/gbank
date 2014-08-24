@@ -267,7 +267,7 @@ namespace AqBanking {
         public BankInfoService dup ();
 
         [CCode (cname = "AB_BankInfoService_List_Next")]
-        public BankInfoService next ();
+        public unowned BankInfoService? next ();
  
         public string type {
             [CCode (cname = "AB_BankInfoService_GetType")] get;
@@ -335,10 +335,10 @@ namespace AqBanking {
         public BankInfoServiceList dup ();
 
         [CCode (cname = "AB_BankInfoService_List_First")]
-        public BankInfoService first ();
+        public unowned BankInfoService? first ();
 
         [CCode (cname = "AB_BankInfoService_List_Next")]
-        public static BankInfoService next (BankInfoService bank_info_service);
+        public static unowned BankInfoService? next (BankInfoService bank_info_service);
     }
 
     [CCode (cname = "AB_BANKINFO_LIST2_ITERATOR", free_function = "AB_BankInfo_List2Iterator_free")]

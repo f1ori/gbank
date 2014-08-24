@@ -61,7 +61,7 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Gtk.ListBox account_list;
     private Gtk.ListStore transaction_listmodel;
     public Banking banking;
-    private GBankDatabase db;
+    public GBankDatabase db;
 
     public MainWindow (Gtk.Application app) {
         Object (application: app, title: "Gmenu Example");
