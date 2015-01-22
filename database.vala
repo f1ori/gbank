@@ -223,8 +223,8 @@ public class GBankDatabase : Object {
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, balance, currency);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, date, valuta_date, amount, currency, purpose, other_name, other_account_number);");
-        this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', 'de', 'pintan', 'https://***REMOVED***', 300, 1, 1);");
-        this.connection.execute_non_select_command("INSERT OR IGNORE INTO accounts (id, user_id, account_type, owner_name, account_number, bank_code, balance, currency) VALUES (1, 1, 'bank', 'Florian Richter', '***REMOVED***', '***REMOVED***', '1000,00', 'EUR');");
+        //this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, 'xxx', 'xxx', 'xxx', 'xxx', 'de', 'pintan', 'xxx', 300, 1, 1);");
+        //this.connection.execute_non_select_command("INSERT OR IGNORE INTO accounts (id, user_id, account_type, owner_name, account_number, bank_code, balance, currency) VALUES (1, 1, 'bank', 'xxx', 'xxx', 'xxx', '1000,00', 'EUR');");
     }
 
 

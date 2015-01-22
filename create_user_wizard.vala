@@ -204,6 +204,7 @@ public class CreateUserWizard : Gtk.Assistant {
                 main_window.db.insert_account( ref account );
             }
         }
+        main_window.update_account_list();
         // TODO update balance
         destroy();
     }

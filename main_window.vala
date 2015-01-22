@@ -60,6 +60,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     private Gtk.ListBox account_list;
     private Gtk.ListStore transaction_listmodel;
+    private Gtk.ListBoxRow all_accounts_row;
     public Banking banking;
     public GBankDatabase db;
 
@@ -92,7 +93,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         account_list = new Gtk.ListBox();
         account_list.width_request = 230;
-        var all_accounts_row = new Gtk.ListBoxRow();
+        all_accounts_row = new Gtk.ListBoxRow();
         var all_accounts = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 20 );
         var create_account_button = new Gtk.Button.from_icon_name( "list-add", Gtk.IconSize.MENU );
         create_account_button.clicked.connect(this.on_create_user);
@@ -112,7 +113,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         treeview.insert_column_with_attributes (-1, "Purpose", new Gtk.CellRendererText(), "markup", 2);
         treeview.insert_column_with_attributes (-1, "Balance", new Gtk.CellRendererText(), "markup", 3);
 
-        fill_account_list();
+        update_account_list();
         fill_transactions();
 
         Gtk.Statusbar statusbar = new Gtk.Statusbar();
@@ -143,7 +144,11 @@ public class MainWindow : Gtk.ApplicationWindow {
         this.show_all ();
     }
 
-    void fill_account_list() {
+    public void update_account_list() {
+        foreach(var row in account_list.get_children()) {
+            if (row != this.all_accounts_row)
+                row.destroy();
+        }
         try {
             foreach (var user in db.get_users()) {
                 account_list.add( new BankRow(

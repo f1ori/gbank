@@ -152,17 +152,18 @@ public class Banking : Object {
             unowned AqBanking.Account? aq_account = iter.data();
 
             while( aq_account != null ) {
-                // TODO filter for account
-                Account account = new Account();
-                account.id = -1;
-                account.account_type = "bank";
-                account.account_number = aq_account.account_number;
-                account.bank_code = aq_account.bank_code;
-                account.owner_name = aq_account.owner_name;
-                account.balance = "0";
-                account.currency = aq_account.currency;
-                accounts.append( account );
-                aq_account = iter.next();
+                if ( aq_account.get_first_selected_user() == aq_user) {
+                    Account account = new Account();
+                    account.id = -1;
+                    account.account_type = "bank";
+                    account.account_number = aq_account.account_number;
+                    account.bank_code = aq_account.bank_code;
+                    account.owner_name = aq_account.owner_name;
+                    account.balance = "0";
+                    account.currency = aq_account.currency;
+                    accounts.append( account );
+                    aq_account = iter.next();
+                }
             }
         }
         bank_job_window.close();
