@@ -7,11 +7,11 @@ public class User : Object {
     public string bank_name;
     public string country;
     public string token_type;
-    public string server_url;
+    public string host;
+    public string port;
+    public string sec_mech;
     public int hbci_version;
-    public int http_version_major;
-    public int http_version_minor;
-    public static const string columns = "id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor";
+    public static const string columns = "id, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech";
 
     public static User from_iter(Gda.DataModelIter iter) {
         User user = new User();
@@ -22,10 +22,10 @@ public class User : Object {
         user.bank_name   = iter.get_value_for_field( "bank_name" ).get_string();
         user.country     = iter.get_value_for_field( "country" ).get_string();
         user.token_type  = iter.get_value_for_field( "token_type" ).get_string();
-        user.server_url  = iter.get_value_for_field( "server_url" ).get_string();
-        user.hbci_version       = iter.get_value_for_field( "hbci_version" ).get_int();
-        user.http_version_major = iter.get_value_for_field( "http_version_major" ).get_int();
-        user.http_version_minor = iter.get_value_for_field( "http_version_minor" ).get_int();
+        user.host        = iter.get_value_for_field( "host" ).get_string();
+        user.port        = iter.get_value_for_field( "port" ).get_string();
+        user.hbci_version = iter.get_value_for_field( "hbci_version" ).get_int();
+        user.sec_mech    = iter.get_value_for_field( "sec_mech" ).get_string();
         return user;
     }
 
@@ -36,10 +36,10 @@ public class User : Object {
         builder.add_field_value_as_gvalue( "bank_code", this.bank_code );
         builder.add_field_value_as_gvalue( "bank_name", this.bank_name );
         builder.add_field_value_as_gvalue( "token_type", this.token_type );
-        builder.add_field_value_as_gvalue( "server_url", this.server_url );
+        builder.add_field_value_as_gvalue( "host", this.host );
+        builder.add_field_value_as_gvalue( "port", this.port );
         builder.add_field_value_as_gvalue( "hbci_version", this.hbci_version );
-        builder.add_field_value_as_gvalue( "http_version_major", this.http_version_major );
-        builder.add_field_value_as_gvalue( "http_version_minor", this.http_version_minor );
+        builder.add_field_value_as_gvalue( "sec_mech", this.sec_mech );
     }
 }
 
@@ -58,12 +58,12 @@ public class Account : Object {
         Account account = new Account();
         account.id           = iter.get_value_for_field( "id" ).get_int();
         account.user_id      = iter.get_value_for_field( "user_id" ).get_int();
-        account.account_type = iter.get_value_for_field( "account_type" ).get_string();
-        account.owner_name   = iter.get_value_for_field( "owner_name" ).get_string();
-        account.account_number  = iter.get_value_for_field( "account_number" ).get_string();
-        account.bank_code    = iter.get_value_for_field( "bank_code" ).get_string();
-        account.balance      = iter.get_value_for_field( "balance" ).get_string();
-        account.currency     = iter.get_value_for_field( "currency" ).get_string();
+        account.account_type = iter.get_value_for_field( "account_type" ).dup_string();
+        account.owner_name   = iter.get_value_for_field( "owner_name" ).dup_string();
+        account.account_number  = iter.get_value_for_field( "account_number" ).dup_string();
+        account.bank_code    = iter.get_value_for_field( "bank_code" ).dup_string();
+        account.balance      = iter.get_value_for_field( "balance" ).dup_string();
+        account.currency     = iter.get_value_for_field( "currency" ).dup_string();
         return account;
     }
 
@@ -93,21 +93,21 @@ public class Transaction : Object {
 
     public static Transaction from_iter(Gda.DataModelIter iter) {
         Date date = Date();
-        date.set_parse(iter.get_value_for_field( "date" ).get_string());
+        date.set_parse(iter.get_value_for_field( "date" ).dup_string());
         Date valuta_date = Date();
-        valuta_date.set_parse(iter.get_value_for_field( "valuta_date" ).get_string());
+        valuta_date.set_parse(iter.get_value_for_field( "valuta_date" ).dup_string());
 
         Transaction transaction = new Transaction();
         transaction.id           = iter.get_value_for_field( "id" ).get_int();
         transaction.account_id   = iter.get_value_for_field( "account_id" ).get_int();
-        transaction.transaction_type  = iter.get_value_for_field( "transaction_type" ).get_string();
+        transaction.transaction_type  = iter.get_value_for_field( "transaction_type" ).dup_string();
         transaction.date         = date;
         transaction.valuta_date  = valuta_date;
         transaction.amount       = iter.get_value_for_field( "amount" ).get_double();
-        transaction.currency     = iter.get_value_for_field( "currency" ).get_string();
-        transaction.purpose      = iter.get_value_for_field( "purpose" ).get_string();
-        transaction.other_name   = iter.get_value_for_field( "other_name" ).get_string();
-        transaction.other_account_number = iter.get_value_for_field( "other_account_number" ).get_string();
+        transaction.currency     = iter.get_value_for_field( "currency" ).dup_string();
+        transaction.purpose      = iter.get_value_for_field( "purpose" ).dup_string();
+        transaction.other_name   = iter.get_value_for_field( "other_name" ).dup_string();
+        transaction.other_account_number = iter.get_value_for_field( "other_account_number" ).dup_string();
         return transaction;
     }
 
@@ -220,7 +220,7 @@ public class GBankDatabase : Object {
     public void create_tables() throws Error {
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS version (version);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO version (version) VALUES (1);");
-        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor);");
+        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, balance, currency);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, date, valuta_date, amount, currency, purpose, other_name, other_account_number);");
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, 'xxx', 'xxx', 'xxx', 'xxx', 'de', 'pintan', 'xxx', 300, 1, 1);");

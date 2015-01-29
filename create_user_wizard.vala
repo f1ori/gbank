@@ -1,20 +1,3 @@
-
-public class BankListRow : Gtk.ListBoxRow {
-    private AqBanking.BankInfo bankinfo;
-
-    public BankListRow(AqBanking.BankInfo bankinfo) {
-        this.bankinfo = bankinfo.dup();
-        var box = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 5 );
-        box.add( new Gtk.Label( bankinfo.bank_id ) );
-        box.add( new Gtk.Label( bankinfo.bank_name ) );
-        this.add( box );
-    }
-
-    public bool filter(string search) {
-        return true;
-    }
-}
-
 public class CreateUserWizard : Gtk.Assistant {
     private Gtk.Box type_page;
     private Gtk.Box bank_page;
@@ -82,22 +65,14 @@ public class CreateUserWizard : Gtk.Assistant {
         var bank_listmodel = new Gtk.ListStore (2, typeof (string), typeof (string));
         bank_list_filtered = new Gtk.TreeModelFilter(bank_listmodel, null);
 
-        var bankinfo_template = new AqBanking.BankInfo();
-        var bank_info_list = new AqBanking.BankInfoList();
-
-        // fill bank list model
-        main_window.banking.banking.get_bank_info_by_template( "de", bankinfo_template, bank_info_list );
-        var bankinfo_iterator = bank_info_list.first();
-        unowned AqBanking.BankInfo bankinfo = bankinfo_iterator.data();
-        while(bankinfo != null) {
+        main_window.banking.ghbci_context.blz_foreach((blz) => {
+            var bank_name = main_window.banking.ghbci_context.get_name_for_blz(blz);
             Gtk.TreeIter iter;
             bank_listmodel.append(out iter);
             bank_listmodel.set (iter,
-                0, bankinfo.bank_id,
-                1, bankinfo.bank_name );
-
-            bankinfo = bankinfo_iterator.next();
-        }
+                0, blz,
+                1, bank_name);
+        });
         bank_list_filtered.set_visible_func(this.on_filter_bank_list);
 
         // prepare bank list widget
@@ -248,37 +223,44 @@ public class CreateUserWizard : Gtk.Assistant {
         Gtk.TreeModel model;
         Gtk.TreeIter iter;
         this.bank_list.get_selection().get_selected(out model, out iter);
-        string blz, name;
+        string blz, bank_name;
         model.get( iter, 0, out blz );
-        model.get( iter, 1, out name );
+        model.get( iter, 1, out bank_name );
 
         // be sure to keep a reference to bank_info while iterating the services
-        var bank_info = main_window.banking.banking.get_bank_info("de", "", blz);
-        unowned AqBanking.BankInfoServiceList services = bank_info.get_services();
-        unowned AqBanking.BankInfoService? service = services.first();
-        while(service != null && service.mode != "PINTAN") {
-           service = service.next();
-        }
-        if (service == null) {
-            // TODO hint url unknown!!
-            stdout.printf("url not found\n");
-            this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON); 
-            this.set_page_complete ( login_details_box, false );
-            return;
+        //var bank_info = main_window.banking.banking.get_bank_info("de", "", blz);
+        //unowned AqBanking.BankInfoServiceList services = bank_info.get_services();
+        //unowned AqBanking.BankInfoService? service = services.first();
+        //while(service != null && service.mode != "PINTAN") {
+        //   service = service.next();
+        //}
+        //if (service == null) {
+        //    // TODO hint url unknown!!
+        //    stdout.printf("url not found\n");
+        //    this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON); 
+        //    this.set_page_complete ( login_details_box, false );
+        //    return;
+        //}
+
+        string url = main_window.banking.ghbci_context.get_pin_tan_url_for_blz(blz);
+        // TODO: ask user, if unknown
+        if (url.length > 8) {
+            // remove https://
+            url = url.substring(8);
         }
 
         user = new User();
         user.id = -1;
         user.user_id = this.login_id.get_text();
         user.customer_id = this.login_id.get_text();
-        user.country = "de";
+        user.country = "DE";
         user.bank_code = blz;
-        user.bank_name = bank_info.bank_name;
+        user.bank_name = bank_name;
         user.token_type = "pintan";
-        user.server_url = service.address;
+        user.host = url;
+        user.port = "443";
         user.hbci_version = 300;
-        user.http_version_major = 1;
-        user.http_version_minor = 1;
+        user.sec_mech = "962";
 
         account_list_store.clear();
 

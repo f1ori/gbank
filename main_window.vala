@@ -195,9 +195,9 @@ public class MainWindow : Gtk.ApplicationWindow {
         string[] authors = {"Florian Richter"};
         Gtk.show_about_dialog (this,
             "program-name", ("GBank"),
-            "comments", "Simple Online Banking Programm",
+            "comments", "Simple Online Banking Application",
             "version", "0.1",
-            "copyright", ("Copyright © 2014 Florian Richter"),
+            "copyright", ("Copyright © 2015 Florian Richter"),
             "authors", authors,
             "website", "http://gbank.github.com/",
             "website-label", ("Website"),
