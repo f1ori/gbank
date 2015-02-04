@@ -164,6 +164,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                     ) );
                 }
             }
+            account_list.show_all();
         } catch (Error e) {
             stderr.printf("ERROR: '%s'\n", e.message);
         }
