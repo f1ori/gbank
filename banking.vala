@@ -40,6 +40,12 @@ public class Banking : Object {
         return "";
     }
 
+    void on_ghbci_log (string message, int64 level) {
+        bank_job_window.add_log_line(message);
+        debug("ghbci-log: '%s', level:%Iu\n", message, level);
+    }
+
+
     public string? get_password () {
         PasswordDialog dialog = new PasswordDialog(bank_job_window);
         switch (dialog.run()) {
@@ -61,7 +67,7 @@ public class Banking : Object {
         ghbci_context = new GHbci.Context();
 
         ghbci_context.callback.connect( on_ghbci_callback );
-        ghbci_context.log.connect( (message, level) => {stdout.printf("ghbci-log: %s\n", message);} );
+        ghbci_context.log.connect( on_ghbci_log );
         current_user = null;
     }
 
