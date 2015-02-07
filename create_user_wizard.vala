@@ -65,8 +65,8 @@ public class CreateUserWizard : Gtk.Assistant {
         var bank_listmodel = new Gtk.ListStore (2, typeof (string), typeof (string));
         bank_list_filtered = new Gtk.TreeModelFilter(bank_listmodel, null);
 
-        main_window.banking.ghbci_context.blz_foreach((blz) => {
-            var bank_name = main_window.banking.ghbci_context.get_name_for_blz(blz);
+        main_window.banking.get_bank_list().foreach( (blz) => {
+            var bank_name = main_window.banking.get_name_for_blz(blz);
             Gtk.TreeIter iter;
             bank_listmodel.append(out iter);
             bank_listmodel.set (iter,
@@ -217,9 +217,6 @@ public class CreateUserWizard : Gtk.Assistant {
     }
 
     public void on_test_button_clicked() {
-        stdout.printf( "test" );
-        List<Account> accounts = new List<Account>();
-
         Gtk.TreeModel model;
         Gtk.TreeIter iter;
         this.bank_list.get_selection().get_selected(out model, out iter);
@@ -242,7 +239,7 @@ public class CreateUserWizard : Gtk.Assistant {
         //    return;
         //}
 
-        string url = main_window.banking.ghbci_context.get_pin_tan_url_for_blz(blz);
+        string url = main_window.banking.get_pin_tan_url_for_blz(blz);
         // TODO: ask user, if unknown
         if (url.length > 8) {
             // remove https://
@@ -264,21 +261,23 @@ public class CreateUserWizard : Gtk.Assistant {
 
         account_list_store.clear();
 
-        var result = this.main_window.banking.check_user( user , ref accounts );
-        stdout.printf( "num accounts %u\n", accounts.length() );
-        foreach ( Account account in accounts ) {
-            stdout.printf( "%s\n", account.account_number );
+        this.main_window.banking.check_user.begin( user , (obj, res) => {
+            Gee.List<Account> accounts;
+            var result = this.main_window.banking.check_user.end(res, out accounts);
+            foreach ( Account account in accounts ) {
+                stdout.printf( "%s\n", account.account_number );
 
-            account_list_store.append (out iter);
-            account_list_store.set (iter, AccountListColumns.TOGGLE, true, AccountListColumns.TEXT, account.account_number, AccountListColumns.ACCOUNT, account);
-        }
-        login_ok = result;
-        if( login_ok ) {
-            this.login_ok_image.set_from_icon_name("gtk-yes", Gtk.IconSize.BUTTON);
-        } else {
-            this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON);
-        }
-        this.set_page_complete ( login_details_box, result );
+                account_list_store.append (out iter);
+                account_list_store.set (iter, AccountListColumns.TOGGLE, true, AccountListColumns.TEXT, account.account_number, AccountListColumns.ACCOUNT, account);
+            }
+            login_ok = result;
+            if( login_ok ) {
+                this.login_ok_image.set_from_icon_name("gtk-yes", Gtk.IconSize.BUTTON);
+            } else {
+                this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON);
+            }
+            this.set_page_complete ( login_details_box, result );
+        });
     }
 
 }
