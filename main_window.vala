@@ -72,18 +72,26 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     private Gtk.ListBoxRow all_accounts_row;
 
-    public Banking banking;
-    public GBankDatabase db;
+    private Banking banking;
+    private GBankDatabase database;
 
     public MainWindow (Gtk.Application app) {
         Object (application: app);
 
-        db = new GBankDatabase();
+        database = new GBankDatabase();
 
         banking = new Banking(new BankJobWindow(this));
 
         update_account_list();
         fill_transactions(1);
+    }
+
+    public unowned Banking get_banking () {
+        return this.banking;
+    }
+
+    public unowned GBankDatabase get_database () {
+        return this.database;
     }
 
     public void update_account_list() {
@@ -92,12 +100,12 @@ public class MainWindow : Gtk.ApplicationWindow {
                 row.destroy();
         }
         try {
-            foreach (var user in db.get_users()) {
+            foreach (var user in database.get_users()) {
                 account_list.add( new BankRow(
                     user.id,
                     user.bank_name
                 ) );
-                foreach (var account in db.get_accounts_for_user(user) ) {
+                foreach (var account in database.get_accounts_for_user(user) ) {
                     account_list.add( new AccountRow(
                         account.id,
                         account.account_type,
@@ -116,7 +124,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         try {
             transactions_liststore.clear();
 
-            foreach (var transaction in db.get_transactions_for_account(db.get_account(account_id))) {
+            foreach (var transaction in database.get_transactions_for_account(database.get_account(account_id))) {
                 var amount_color = transaction.amount < 0 ? "red": "black";
                 string date = "%d.%d.%d".printf(transaction.date.get_day(), transaction.date.get_month(), transaction.date.get_year());
                 string valuta_date = "%d.%d.%d".printf(transaction.valuta_date.get_day(), transaction.valuta_date.get_month(), transaction.valuta_date.get_year());
@@ -150,9 +158,9 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     [GtkCallback]
     void on_update_accounts () {
-        foreach (var user in db.get_users() ) {
-            foreach (var account in db.get_accounts_for_user(user)) {
-                banking.fetch_transactions(user, account, db);
+        foreach (var user in database.get_users() ) {
+            foreach (var account in database.get_accounts_for_user(user)) {
+                banking.fetch_transactions(user, account, database);
             }
         }
         fill_transactions(1); // TODO: show last

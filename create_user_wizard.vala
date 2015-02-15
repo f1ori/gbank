@@ -1,4 +1,6 @@
 public class CreateUserWizard : Gtk.Assistant {
+    private MainWindow main_window;
+
     private Gtk.Box type_page;
     private Gtk.Box bank_page;
     private Gtk.Grid login_details_box;
@@ -6,12 +8,13 @@ public class CreateUserWizard : Gtk.Assistant {
     private Gtk.Entry bank_search;
     private Gtk.TreeView bank_list;
     private Gtk.TreeModelFilter bank_list_filtered;
-    private MainWindow main_window;
     private bool login_ok;
     private Gtk.Image login_ok_image;
-    private User user;
     private Gtk.ListStore account_list_store;
     private Gtk.TreeView account_list_view;
+
+    // user to be created
+    private User user;
 
     private enum AccountListColumns {
         TOGGLE,
@@ -65,8 +68,8 @@ public class CreateUserWizard : Gtk.Assistant {
         var bank_listmodel = new Gtk.ListStore (2, typeof (string), typeof (string));
         bank_list_filtered = new Gtk.TreeModelFilter(bank_listmodel, null);
 
-        main_window.banking.get_bank_list().foreach( (blz) => {
-            var bank_name = main_window.banking.get_name_for_blz(blz);
+        main_window.get_banking().get_bank_list().foreach( (blz) => {
+            var bank_name = main_window.get_banking().get_name_for_blz(blz);
             Gtk.TreeIter iter;
             bank_listmodel.append(out iter);
             bank_listmodel.set (iter,
@@ -165,7 +168,7 @@ public class CreateUserWizard : Gtk.Assistant {
 
     public void on_close() {
         // save
-        main_window.db.insert_user(ref user);
+        main_window.get_database().insert_user(ref user);
 
         Gtk.TreeIter iter;
         for (bool next = account_list_store.get_iter_first (out iter); next; next = account_list_store.iter_next (ref iter)) {
@@ -176,7 +179,7 @@ public class CreateUserWizard : Gtk.Assistant {
                 account_list_store.get_value (iter, AccountListColumns.ACCOUNT, out gvalue_account);
                 Account account = gvalue_account.get_object() as Account;
                 account.user_id = user.id;
-                main_window.db.insert_account( ref account );
+                main_window.get_database().insert_account( ref account );
             }
         }
         main_window.update_account_list();
@@ -239,7 +242,7 @@ public class CreateUserWizard : Gtk.Assistant {
         //    return;
         //}
 
-        string url = main_window.banking.get_pin_tan_url_for_blz(blz);
+        string url = main_window.get_banking().get_pin_tan_url_for_blz(blz);
         // TODO: ask user, if unknown
         if (url.length > 8) {
             // remove https://
@@ -261,9 +264,9 @@ public class CreateUserWizard : Gtk.Assistant {
 
         account_list_store.clear();
 
-        this.main_window.banking.check_user.begin( user , (obj, res) => {
+        this.main_window.get_banking().check_user.begin( user , (obj, res) => {
             Gee.List<Account> accounts;
-            var result = this.main_window.banking.check_user.end(res, out accounts);
+            var result = this.main_window.get_banking().check_user.end(res, out accounts);
             foreach ( Account account in accounts ) {
                 stdout.printf( "%s\n", account.account_number );
 
