@@ -13,7 +13,7 @@ gbank: $(VALAFILES) resources.c
 		$(VALAFILES) resources.c
 
 run: gbank
-	LD_LIBRARY_PATH=../hbci4java-glib/ghbci/.libs/ ./gbank
+	LD_LIBRARY_PATH=../hbci4java-glib/ghbci/.libs/:${LD_LIBRARY_PATH} ./gbank
 
 clean:
-	rm -f gbank *.vala.c
+	rm -f gbank *.vala.c resources.c

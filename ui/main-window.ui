@@ -39,6 +39,7 @@
             <property name="width_request">230</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <signal name="row-activated" handler="on_row_activated" swapped="no"/>
             <child>
               <object class="GtkListBoxRow" id="all_accounts_row">
                 <property name="visible">True</property>

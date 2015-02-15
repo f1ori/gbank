@@ -54,6 +54,10 @@ class AccountRow : Gtk.ListBoxRow {
 
         this.add(box);
     }
+
+    public int get_id () {
+        return this.db_id;
+    }
 }
 
 [GtkTemplate (ui = "/de/f1ori/gbank/ui/main-window.ui")]
@@ -79,7 +83,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         banking = new Banking(new BankJobWindow(this));
 
         update_account_list();
-        fill_transactions();
+        fill_transactions(1);
     }
 
     public void update_account_list() {
@@ -94,7 +98,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                     user.bank_name
                 ) );
                 foreach (var account in db.get_accounts_for_user(user) ) {
-                    account_list.add( new AccountRow( 
+                    account_list.add( new AccountRow(
                         account.id,
                         account.account_type,
                         account.account_number,
@@ -108,11 +112,11 @@ public class MainWindow : Gtk.ApplicationWindow {
         }
     }
 
-    public void fill_transactions() {
+    public void fill_transactions(int account_id) {
         try {
             transactions_liststore.clear();
 
-            foreach (var transaction in db.get_transactions_for_account(db.get_account(1))) {
+            foreach (var transaction in db.get_transactions_for_account(db.get_account(account_id))) {
                 var amount_color = transaction.amount < 0 ? "red": "black";
                 string date = "%d.%d.%d".printf(transaction.date.get_day(), transaction.date.get_month(), transaction.date.get_year());
                 string valuta_date = "%d.%d.%d".printf(transaction.valuta_date.get_day(), transaction.valuta_date.get_month(), transaction.valuta_date.get_year());
@@ -151,11 +155,19 @@ public class MainWindow : Gtk.ApplicationWindow {
                 banking.fetch_transactions(user, account, db);
             }
         }
-        fill_transactions();
+        fill_transactions(1); // TODO: show last
     }
 
     [GtkCallback]
     void on_create_user () {
         new CreateUserWizard(this);
+    }
+
+    [GtkCallback]
+    void on_row_activated(Gtk.ListBoxRow row) {
+        if (row is AccountRow) {
+            var account_row = row as AccountRow;
+            fill_transactions(account_row.get_id());
+        }
     }
 }
