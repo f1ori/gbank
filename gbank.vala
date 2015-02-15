@@ -19,7 +19,8 @@ class GBank : Gtk.Application {
     }
 
     protected override void activate () {
-        new MainWindow (this);
+        var main_window = new MainWindow (this);
+        main_window.present();
     }
 }
 

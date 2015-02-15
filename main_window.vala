@@ -56,43 +56,27 @@ class AccountRow : Gtk.ListBoxRow {
     }
 }
 
+[GtkTemplate (ui = "/de/f1ori/gbank/ui/main-window.ui")]
 public class MainWindow : Gtk.ApplicationWindow {
 
+    [GtkChild]
     private Gtk.ListBox account_list;
-    private Gtk.ListStore transaction_listmodel;
+
+    [GtkChild]
+    private Gtk.ListStore transactions_liststore;
+
     private Gtk.ListBoxRow all_accounts_row;
     public Banking banking;
     public GBankDatabase db;
 
     public MainWindow (Gtk.Application app) {
-        Object (application: app, title: "Gmenu Example");
+        Object (application: app);
 
         db = new GBankDatabase();
 
         banking = new Banking(new BankJobWindow(this));
 
-        this.set_default_size ( 800, 600 );
-        //this.icon = IconTheme.get_default ().load_icon ("my-app", 48, 0);
-
-        var about_action = new SimpleAction ("about", null);
-        about_action.activate.connect (this.about_cb);
-        this.add_action (about_action);
-        
-        Gtk.HeaderBar headerBar = new Gtk.HeaderBar ();
-        headerBar.set_title ("GBank");
-        headerBar.set_show_close_button (true);
-        
-        var update_all_button = new Gtk.Button.from_icon_name ( "mail-send-receive-symbolic", Gtk.IconSize.LARGE_TOOLBAR );
-        update_all_button.clicked.connect (this.on_update_accounts);
-        headerBar.pack_start (update_all_button);
-
-        var entry = new Gtk.Entry ();
-        entry.set_icon_from_icon_name (Gtk.EntryIconPosition.PRIMARY, "system-search");
-        headerBar.pack_end (entry);
-        this.set_titlebar (headerBar);
-
-        account_list = new Gtk.ListBox();
-        account_list.width_request = 230;
+        // Add row for displaying transactions from all banks and accounts
         all_accounts_row = new Gtk.ListBoxRow();
         var all_accounts = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 20 );
         var create_account_button = new Gtk.Button.from_icon_name( "list-add", Gtk.IconSize.MENU );
@@ -102,46 +86,10 @@ public class MainWindow : Gtk.ApplicationWindow {
         all_accounts.pack_end( create_account_button , false, false );
         all_accounts_row.add( all_accounts );
         account_list.add( all_accounts_row );
-
-        Gtk.ScrolledWindow treeview_scrolled = new Gtk.ScrolledWindow(null, null);
-
-        transaction_listmodel = new Gtk.ListStore (4, typeof (string), typeof (string), typeof (string), typeof (string));
-        Gtk.TreeView treeview = new Gtk.TreeView ();
-        treeview.set_model (transaction_listmodel);
-        treeview.insert_column_with_attributes (-1, "Datum", new Gtk.CellRendererText(), "markup", 0);
-        treeview.insert_column_with_attributes (-1, "Type", new Gtk.CellRendererText(), "markup", 1);
-        treeview.insert_column_with_attributes (-1, "Purpose", new Gtk.CellRendererText(), "markup", 2);
-        treeview.insert_column_with_attributes (-1, "Balance", new Gtk.CellRendererText(), "markup", 3);
+        account_list.show_all();
 
         update_account_list();
         fill_transactions();
-
-        Gtk.Statusbar statusbar = new Gtk.Statusbar();
-
-        Gtk.Button transfer_button = new Gtk.Button.with_label("New Transfer");
-        Gtk.Button standing_orders_button = new Gtk.Button.with_label("Standing Orders");
-
-        Gtk.Label balance_label = new Gtk.Label(null);
-        balance_label.set_markup( GLib.Markup.printf_escaped( "<big>%s</big>" , "10,00 €") );
-
-        var window_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-        var mainbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-        var account_header_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
-        account_header_box.margin = 5;
-        var account_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
-
-        account_header_box.pack_start(transfer_button, false, false);
-        account_header_box.pack_start(standing_orders_button, false, false);
-        account_header_box.pack_end(balance_label, false, false);
-        account_box.pack_start(account_header_box, false, false);
-        treeview_scrolled.add(treeview);
-        account_box.pack_start(treeview_scrolled);
-        mainbox.pack_start(account_list, false);
-        mainbox.pack_start(account_box, true);
-        window_box.pack_start(mainbox);
-        window_box.pack_end(statusbar, false, false);
-        this.add(window_box);
-        this.show_all ();
     }
 
     public void update_account_list() {
@@ -172,7 +120,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     public void fill_transactions() {
         try {
-            transaction_listmodel.clear();
+            transactions_liststore.clear();
 
             foreach (var transaction in db.get_transactions_for_account(db.get_account(1))) {
                 var amount_color = transaction.amount < 0 ? "red": "black";
@@ -180,8 +128,8 @@ public class MainWindow : Gtk.ApplicationWindow {
                 string valuta_date = "%d.%d.%d".printf(transaction.valuta_date.get_day(), transaction.valuta_date.get_month(), transaction.valuta_date.get_year());
 
                 Gtk.TreeIter iter ;
-                transaction_listmodel.append(out iter);
-                transaction_listmodel.set (iter,
+                transactions_liststore.append(out iter);
+                transactions_liststore.set (iter,
                     0, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", date, valuta_date),
                     1, GLib.Markup.escape_text(transaction.other_name),
                     2, GLib.Markup.escape_text(transaction.purpose),
@@ -206,6 +154,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         );
     }
 
+    [GtkCallback]
     void on_update_accounts () {
         foreach (var user in db.get_users() ) {
             foreach (var account in db.get_accounts_for_user(user)) {
