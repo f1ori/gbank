@@ -65,7 +65,9 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     private Gtk.ListStore transactions_liststore;
 
+    [GtkChild]
     private Gtk.ListBoxRow all_accounts_row;
+
     public Banking banking;
     public GBankDatabase db;
 
@@ -75,18 +77,6 @@ public class MainWindow : Gtk.ApplicationWindow {
         db = new GBankDatabase();
 
         banking = new Banking(new BankJobWindow(this));
-
-        // Add row for displaying transactions from all banks and accounts
-        all_accounts_row = new Gtk.ListBoxRow();
-        var all_accounts = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 20 );
-        var create_account_button = new Gtk.Button.from_icon_name( "list-add", Gtk.IconSize.MENU );
-        create_account_button.clicked.connect(this.on_create_user);
-        all_accounts.margin = 5;
-        all_accounts.pack_start( new Gtk.Label( "All Accounts" ), false, false );
-        all_accounts.pack_end( create_account_button , false, false );
-        all_accounts_row.add( all_accounts );
-        account_list.add( all_accounts_row );
-        account_list.show_all();
 
         update_account_list();
         fill_transactions();
@@ -164,6 +154,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         fill_transactions();
     }
 
+    [GtkCallback]
     void on_create_user () {
         new CreateUserWizard(this);
     }
