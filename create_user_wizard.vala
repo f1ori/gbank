@@ -1,9 +1,11 @@
 public class CreateUserWizard : Gtk.Assistant {
     private MainWindow main_window;
 
+    // assistant pages
     private Gtk.Box type_page;
     private Gtk.Box bank_page;
-    private Gtk.Grid login_details_box;
+    private Gtk.Grid login_page;
+
     private Gtk.Entry login_id;
     private Gtk.Entry bank_search;
     private Gtk.TreeView bank_list;
@@ -11,7 +13,6 @@ public class CreateUserWizard : Gtk.Assistant {
     private bool login_ok;
     private Gtk.Image login_ok_image;
     private Gtk.ListStore account_list_store;
-    private Gtk.TreeView account_list_view;
 
     // user to be created
     private User user;
@@ -101,28 +102,28 @@ public class CreateUserWizard : Gtk.Assistant {
 
     private void setup_login_page() {
         // enter login information
-        login_details_box = new Gtk.Grid( );
-        login_details_box.set_row_spacing(4);
-        login_details_box.set_column_spacing(4);
+        login_page = new Gtk.Grid( );
+        login_page.set_row_spacing(4);
+        login_page.set_column_spacing(4);
 
-        login_details_box.attach(new Gtk.Label( "Enter Bank Account Number or Login Id:" ), 0, 0, 2, 1);
+        login_page.attach(new Gtk.Label( "Enter Bank Account Number or Login Id:" ), 0, 0, 2, 1);
 
         login_id = new Gtk.Entry ();
         login_id.changed.connect(this.on_login_id_changed);
         login_ok = false;
         login_ok_image = new Gtk.Image();
-        login_details_box.attach( new Gtk.Label("Login Id"), 0, 1, 1, 1);
-        login_details_box.attach(login_id, 1, 1, 1, 1);
-        login_details_box.attach(login_ok_image, 2, 1, 1, 1);
+        login_page.attach( new Gtk.Label("Login Id"), 0, 1, 1, 1);
+        login_page.attach(login_id, 1, 1, 1, 1);
+        login_page.attach(login_ok_image, 2, 1, 1, 1);
 
         var test_button = new Gtk.Button.with_label("Test");
         test_button.clicked.connect(this.on_test_button_clicked);
-        login_details_box.attach(test_button, 1, 2, 1, 1);
+        login_page.attach(test_button, 1, 2, 1, 1);
 
-        this.append_page (login_details_box);
-        this.set_page_title (login_details_box, "Enter Login Id");
-        this.set_page_type (login_details_box, Gtk.AssistantPageType.CONTENT);
-        this.set_page_complete (login_details_box, false);
+        this.append_page (login_page);
+        this.set_page_title (login_page, "Enter Login Id");
+        this.set_page_type (login_page, Gtk.AssistantPageType.CONTENT);
+        this.set_page_complete (login_page, false);
     }
 
     private void setup_accounts_page() {
@@ -131,7 +132,7 @@ public class CreateUserWizard : Gtk.Assistant {
         var select_account_label = new Gtk.Label( "Following accounts will be created:" );
         select_account_box.pack_start(select_account_label, false, false);
         account_list_store = new Gtk.ListStore(AccountListColumns.N_COLUMNS, typeof (bool), typeof (string), typeof(Account));
-        account_list_view = new Gtk.TreeView.with_model (account_list_store);
+        var account_list_view = new Gtk.TreeView.with_model (account_list_store);
 
         var toggle = new Gtk.CellRendererToggle ();
         toggle.toggled.connect ((toggle, path) => {
