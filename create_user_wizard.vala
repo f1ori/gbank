@@ -191,7 +191,7 @@ public class CreateUserWizard : Gtk.Assistant {
     public void on_login_id_changed() {
         this.login_ok = false;
         this.login_ok_image.clear();
-        this.set_page_complete( login_details_box, false );
+        this.set_page_complete( login_page, false );
     }
 
     public void on_bank_search_changed() {
@@ -239,7 +239,7 @@ public class CreateUserWizard : Gtk.Assistant {
         //    // TODO hint url unknown!!
         //    stdout.printf("url not found\n");
         //    this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON); 
-        //    this.set_page_complete ( login_details_box, false );
+        //    this.set_page_complete ( login_page, false );
         //    return;
         //}
 
@@ -280,7 +280,7 @@ public class CreateUserWizard : Gtk.Assistant {
             } else {
                 this.login_ok_image.set_from_icon_name("gtk-no", Gtk.IconSize.BUTTON);
             }
-            this.set_page_complete ( login_details_box, result );
+            this.set_page_complete ( login_page, result );
         });
     }
 
