@@ -39,10 +39,10 @@ class CheckUserJob : Object, Job {
 class GetStatementsJob : Object, Job {
     private User user;
     private Account account;
-    private AsyncQueue<SList<GHbci.Statement>> result_queue;
+    private AsyncQueue<Gee.LinkedList<GHbci.Statement>> result_queue;
     private SourceFunc callback;
 
-    public GetStatementsJob(User user, Account account, AsyncQueue<SList<GHbci.Statement>> result_queue, owned SourceFunc callback) {
+    public GetStatementsJob(User user, Account account, AsyncQueue<Gee.LinkedList<GHbci.Statement>> result_queue, owned SourceFunc callback) {
         this.user = user;
         this.account = account;
         this.result_queue = result_queue;
@@ -54,9 +54,13 @@ class GetStatementsJob : Object, Job {
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
         var statements = ghbci_context.get_statements(user.bank_code, user.user_id, account.account_number);
+        Gee.LinkedList<GHbci.Statement> statements_list = new Gee.LinkedList<GHbci.Statement> ();
+        foreach(GHbci.Statement statement in statements)
+            statements_list.add (statement);
+
         banking.current_user = null;
 
-        result_queue.push( (owned) statements );
+        result_queue.push( (owned) statements_list );
 
         // Schedule callback
         Idle.add( (owned) callback );
@@ -233,12 +237,12 @@ public class Banking {
     }
 
     public async void fetch_transactions(User user, Account account, GBankDatabase db) throws Error {
-        var result_queue = new AsyncQueue<SList<GHbci.Statement>>();
+        var result_queue = new AsyncQueue<Gee.LinkedList<GHbci.Statement>>();
 
         jobs.push( new GetStatementsJob( user, account, result_queue, fetch_transactions.callback ) );
 
         yield;
-        SList<GHbci.Statement> statements = result_queue.pop();
+        Gee.LinkedList<GHbci.Statement> statements = result_queue.pop();
 
         foreach (GHbci.Statement statement in statements) {
             Transaction db_transaction = new Transaction();
