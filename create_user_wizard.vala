@@ -20,6 +20,8 @@ public class CreateUserWizard : Gtk.Assistant {
     [GtkChild]
     private Gtk.Stack login_ok_stack;
     [GtkChild]
+    private Gtk.Button test_button;
+    [GtkChild]
     private Gtk.ListStore bank_liststore;
     [GtkChild]
     private Gtk.ListStore accounts_liststore;
@@ -125,6 +127,7 @@ public class CreateUserWizard : Gtk.Assistant {
         model.get( iter, 1, out bank_name );
 
         this.login_ok_stack.set_visible_child_name( "progress" );
+        this.test_button.set_sensitive( false );
 
         // be sure to keep a reference to bank_info while iterating the services
         //var bank_info = main_window.banking.banking.get_bank_info("de", "", blz);
@@ -179,6 +182,7 @@ public class CreateUserWizard : Gtk.Assistant {
                 this.login_ok_stack.set_visible_child_name( "bad" );
             }
             this.set_page_complete ( login_page, result );
+            this.test_button.set_sensitive( true );
         });
     }
 
