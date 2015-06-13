@@ -163,7 +163,12 @@ public class MainWindow : Gtk.ApplicationWindow {
                 banking.fetch_transactions(user, account, database);
             }
         }
-        fill_transactions(1); // TODO: show last
+        // TODO: properly update lists
+        var row = account_list.get_selected_row ();
+        if (row is AccountRow) {
+            var account_row = row as AccountRow;
+            fill_transactions(account_row.get_id());
+        }
     }
 
     [GtkCallback]
