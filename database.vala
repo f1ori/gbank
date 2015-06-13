@@ -199,7 +199,7 @@ public class GBankDatabase : Object {
     }
 
     public List<Transaction> get_transactions_for_account(Account account) {
-        Gda.DataModel transaction_data = this.connection.execute_select_command("SELECT %s FROM transactions WHERE account_id = %d;".printf(Transaction.columns, account.id));
+        Gda.DataModel transaction_data = this.connection.execute_select_command("SELECT %s FROM transactions WHERE account_id = %d ORDER BY date DESC;".printf(Transaction.columns, account.id));
         Gda.DataModelIter transaction_iter = transaction_data.create_iter();
 
         List<Transaction> list = new List<Transaction>();
