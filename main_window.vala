@@ -72,6 +72,12 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     private Gtk.ListBoxRow all_accounts_row;
 
+    [GtkChild]
+    private Gtk.Image open_progress_image;
+    [GtkChild]
+    private Gtk.Image close_progress_image;
+
+    private BankJobWindow bank_job_window;
     private Banking banking;
     private GBankDatabase database;
 
@@ -80,7 +86,9 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         database = new GBankDatabase();
 
-        banking = new Banking(new BankJobWindow(this));
+        bank_job_window = new BankJobWindow(this);
+
+        banking = new Banking(bank_job_window);
 
         update_account_list();
         fill_transactions(1);
@@ -181,6 +189,17 @@ public class MainWindow : Gtk.ApplicationWindow {
         if (row is AccountRow) {
             var account_row = row as AccountRow;
             fill_transactions(account_row.get_id());
+        }
+    }
+
+    [GtkCallback]
+    void on_open_progress_button_toggled(Gtk.ToggleButton toggle_button) {
+        if (toggle_button.get_active()) {
+            bank_job_window.show();
+            toggle_button.set_image(close_progress_image);
+        } else {
+            bank_job_window.hide();
+            toggle_button.set_image(open_progress_image);
         }
     }
 }

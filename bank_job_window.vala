@@ -4,10 +4,10 @@ public class BankJobWindow : Gtk.Window {
     private Gtk.TextView log;
 
     public BankJobWindow( Gtk.Window parent ) {
-        this.title = "Connecting to bank...";
+        this.title = "Log";
         this.set_default_size ( 400, 500 );
         this.set_transient_for ( parent );
-        this.set_modal( true );
+        this.set_modal( false );
 
         var main_box = new Gtk.Box( Gtk.Orientation.VERTICAL, 5 );
 
@@ -27,6 +27,8 @@ public class BankJobWindow : Gtk.Window {
         main_box.pack_start( cancel_button, false, false, 8 );
 
         this.add( main_box );
+
+        main_box.show_all();
 
         this.delete_event.connect(this.hide_on_delete);
     }
