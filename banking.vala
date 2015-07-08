@@ -129,7 +129,11 @@ public class Banking {
     }
 
     void on_ghbci_log (string message, int64 level) {
-        //Idle.add( () => {log(message, level);} );
+        MainContext.default().invoke( () => {
+            bank_job_window.add_log_line(message);
+            stdout.printf("log: %s\n", message);
+            return Source.REMOVE;
+        });
         return;
     }
 
