@@ -119,6 +119,7 @@ public class Banking {
     public User? current_user;
     AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
     public signal void log(string message, int64 level);
+    public signal void status_message(string message);
 
 
     public Banking(BankJobWindow bank_job_window) {
@@ -172,6 +173,42 @@ public class Banking {
         return "";
     }
 
+    void on_ghbci_status (int64 tag, string message) {
+        MainContext.default().invoke( () => {
+            string description = "";
+            switch (tag) {
+                case GHbci.StatusTag.SEND_TASK:          description = "Send Task"; break;
+                case GHbci.StatusTag.SEND_TASK_DONE:     description = "Send Task Done"; break;
+                case GHbci.StatusTag.INST_BPD_INIT:      description = "Inst bpd init"; break;
+                case GHbci.StatusTag.INST_BPD_INIT_DONE: description = "Inst bpd init done"; break;  
+                case GHbci.StatusTag.INST_GET_KEYS:      description = "Get Keys"; break;
+                case GHbci.StatusTag.INST_GET_KEYS_DONE: description = "Get Keys done"; break;
+                case GHbci.StatusTag.SEND_KEYS:          description = "Send Keys"; break;
+                case GHbci.StatusTag.SEND_KEYS_DONE:     description = "Send Keys done"; break;
+                case GHbci.StatusTag.INIT_SYSID:         description = "Init Sysid"; break;
+                case GHbci.StatusTag.INIT_SYSID_DONE:    description = "Init Sysid Done"; break;
+                case GHbci.StatusTag.INIT_UPD:           description = "Init UPD"; break;
+                case GHbci.StatusTag.INIT_UPD_DONE:      description = "Init UPD done"; break;
+                case GHbci.StatusTag.LOCK_KEYS:          description = "Lock keys"; break;
+                case GHbci.StatusTag.LOCK_KEYS_DONE:     description = "Lock Keys done"; break;
+                case GHbci.StatusTag.INIT_SIGID:         description = "Init sigid"; break;
+                case GHbci.StatusTag.INIT_SIGID_DONE:    description = "init sigid done"; break;
+                case GHbci.StatusTag.DIALOG_INIT:        description = "dialog init"; break;
+                case GHbci.StatusTag.DIALOG_INIT_DONE:   description = "dialog init done"; break;
+                case GHbci.StatusTag.DIALOG_END:         description = "dialog end"; break;
+                case GHbci.StatusTag.DIALOG_END_DONE:    description = "dialog end done"; break;
+            }
+            if (description != "") {
+                status_message(description);
+                bank_job_window.add_status_line(description);
+                stdout.printf("status: %s\n", description);
+            }
+            return Source.REMOVE;
+        });
+        return;
+    }
+
+
     public string get_password() {
         // TODO: move gui stuff out of this module
         AsyncQueue<string?> result = new AsyncQueue<string?>();
@@ -199,6 +236,7 @@ public class Banking {
 
         ghbci_context.callback.connect( on_ghbci_callback );
         ghbci_context.log.connect( on_ghbci_log );
+        ghbci_context.status.connect( on_ghbci_status );
 
         while(true) {
             Job job = jobs.pop ();

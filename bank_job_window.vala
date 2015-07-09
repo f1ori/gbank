@@ -45,4 +45,8 @@ public class BankJobWindow : Gtk.Window {
         buffer.insert(ref iter, "\n", 1);
         this.log.scroll_to_iter(iter, 0, false, 1, 1);
     }
+
+    public void add_status_line (string line) {
+        add_log_line( "status: " + line );
+    }
 }
