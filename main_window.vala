@@ -73,6 +73,13 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Gtk.ListBoxRow all_accounts_row;
 
     [GtkChild]
+    private Gtk.Button update_all_button;
+    [GtkChild]
+    private Gtk.Image update_all_image;
+    [GtkChild]
+    private Gtk.Spinner update_all_spinner;
+
+    [GtkChild]
     private Gtk.Image open_progress_image;
     [GtkChild]
     private Gtk.Image close_progress_image;
@@ -164,19 +171,28 @@ public class MainWindow : Gtk.ApplicationWindow {
         );
     }
 
-    [GtkCallback]
-    void on_update_accounts () {
+    async void update_accounts() {
         foreach (var user in database.get_users() ) {
             foreach (var account in database.get_accounts_for_user(user)) {
-                banking.fetch_transactions(user, account, database);
+                yield banking.fetch_transactions(user, account, database);
             }
         }
-        // TODO: properly update lists
-        var row = account_list.get_selected_row ();
-        if (row is AccountRow) {
-            var account_row = row as AccountRow;
-            fill_transactions(account_row.get_id());
-        }
+    }
+
+    [GtkCallback]
+    void on_update_accounts () {
+        update_all_button.set_image (update_all_spinner);
+        update_all_button.set_sensitive (false);
+        update_accounts.begin ((obj, res) => {
+            // TODO: properly update lists
+            var row = account_list.get_selected_row ();
+            if (row is AccountRow) {
+                var account_row = row as AccountRow;
+                fill_transactions (account_row.get_id());
+            }
+            update_all_button.set_image (update_all_image);
+            update_all_button.set_sensitive (true);
+        });
     }
 
     [GtkCallback]

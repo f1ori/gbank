@@ -303,4 +303,14 @@
       </object>
     </child>
   </template>
+  <object class="GtkImage" id="update_all_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-refresh</property>
+  </object>
+  <object class="GtkSpinner" id="update_all_spinner">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="active">True</property>
+  </object>
 </interface>
