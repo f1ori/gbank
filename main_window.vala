@@ -144,6 +144,7 @@ public class MainWindow : Gtk.ApplicationWindow {
             transactions_liststore.clear();
 
             foreach (var transaction in database.get_transactions_for_account(database.get_account(account_id))) {
+                GHbci.Statement.prettify_statement(transaction);
                 var amount_color = transaction.amount < 0 ? "red": "black";
                 string date = "%d.%d.%d".printf(transaction.date.get_day(), transaction.date.get_month(), transaction.date.get_year());
                 string valuta_date = "%d.%d.%d".printf(transaction.valuta_date.get_day(), transaction.valuta_date.get_month(), transaction.valuta_date.get_year());
@@ -153,7 +154,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                 transactions_liststore.set (iter,
                     0, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", date, valuta_date),
                     1, GLib.Markup.escape_text(transaction.other_name),
-                    2, GLib.Markup.escape_text(transaction.purpose),
+                    2, GLib.Markup.escape_text(transaction.reference),
                     3, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", amount_color, transaction.amount ) );
             }
         } catch (Error e) {

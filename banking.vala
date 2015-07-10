@@ -296,8 +296,9 @@ public class Banking {
             db_transaction.amount = double.parse(statement.value);
             db_transaction.currency = "EUR";
             db_transaction.other_name = statement.other_name;
-            db_transaction.other_account_number = statement.other_iban;
-            db_transaction.purpose = statement.reference;
+            db_transaction.other_iban = statement.other_iban;
+            db_transaction.other_bic = statement.other_bic;
+            db_transaction.reference = statement.reference;
             db.insert_transaction(db_transaction);
         }
     }
