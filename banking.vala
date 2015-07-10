@@ -67,6 +67,34 @@ class GetStatementsJob : Object, Job {
     }
 }
 
+class GetBalanceJob : Object, Job {
+    private User user;
+    private Account account;
+    private AsyncQueue<string> result_queue;
+    private SourceFunc callback;
+
+    public GetBalanceJob(User user, Account account, AsyncQueue<string> result_queue, owned SourceFunc callback) {
+        this.user = user;
+        this.account = account;
+        this.result_queue = result_queue;
+        this.callback = (owned) callback;
+    }
+
+    public void run(Banking banking, GHbci.Context ghbci_context) {
+        banking.current_user = user;
+        ghbci_context.add_passport(user.bank_code, user.user_id);
+
+        var balance = ghbci_context.get_balances(user.bank_code, user.user_id, account.account_number);
+
+        banking.current_user = null;
+
+        result_queue.push( (owned) balance );
+
+        // Schedule callback
+        Idle.add( (owned) callback );
+    }
+}
+
 class ListBanksJob : Object, Job {
     private unowned AsyncQueue<List<string>> result_queue;
 
@@ -301,5 +329,14 @@ public class Banking {
             db_transaction.reference = statement.reference;
             db.insert_transaction(db_transaction);
         }
+    }
+
+    public async void get_balance(User user, Account account, GBankDatabase db) throws Error {
+        var result_queue = new AsyncQueue<string>();
+        jobs.push( new GetBalanceJob( user, account, result_queue, get_balance.callback ) );
+
+        yield;
+        account.balance = result_queue.pop();
+        db.save_account(account);
     }
 }

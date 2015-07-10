@@ -220,6 +220,20 @@ public class GBankDatabase : Object {
         this.connection.statement_execute_non_select(b.get_statement(), null, null);
     }
 
+    public void save_account(Account account) throws Error {
+        var b = new Gda.SqlBuilder(Gda.SqlStatementType.UPDATE);
+        b.set_table("accounts");
+        account.set_fields( b );
+        var where = b.add_cond( Gda.SqlOperatorType.EQ,
+                                b.add_field_id("id", "accounts"),
+                                b.add_expr_value( null, account.id ),
+                                0);
+        b.set_where( where );
+
+        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        stdout.printf( "save account result %d\n", result );
+    }
+
     public void create_tables() throws Error {
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS version (version);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO version (version) VALUES (1);");
@@ -229,6 +243,5 @@ public class GBankDatabase : Object {
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, 'xxx', 'xxx', 'xxx', 'xxx', 'de', 'pintan', 'xxx', 300, 1, 1);");
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO accounts (id, user_id, account_type, owner_name, account_number, bank_code, balance, currency) VALUES (1, 1, 'bank', 'xxx', 'xxx', 'xxx', '1000,00', 'EUR');");
     }
-
 
 }

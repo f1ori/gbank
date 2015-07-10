@@ -190,6 +190,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         foreach (var user in database.get_users() ) {
             foreach (var account in database.get_accounts_for_user(user)) {
                 yield banking.fetch_transactions(user, account, database);
+                yield banking.get_balance(user, account, database);
             }
         }
     }
