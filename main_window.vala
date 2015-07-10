@@ -24,13 +24,15 @@ class AccountRow : Gtk.ListBoxRow {
     private int db_id;
     private string account_name;
     private string account_number;
-    private string balance;
+    private double balance;
 
-    public AccountRow( int db_id, string account_name, string account_number, string balance ) {
+    public AccountRow( int db_id, string account_name, string account_number, double balance ) {
         this.db_id = db_id;
         this.account_name = account_name;
         this.account_number = account_number;
         this.balance = balance;
+
+        var balance_color = balance < 0 ? "red": "black";
 
         Gtk.Label name_label = new Gtk.Label( null );
         name_label.set_markup( GLib.Markup.printf_escaped( "<b>%s</b>" , account_name) );
@@ -39,7 +41,7 @@ class AccountRow : Gtk.ListBoxRow {
         number_label.set_markup( GLib.Markup.printf_escaped( "<i>%s</i>" , account_number) );
 
         Gtk.Label balance_label = new Gtk.Label( null );
-        balance_label.set_markup( GLib.Markup.printf_escaped( "<big>%s</big>" , balance) );
+        balance_label.set_markup( GLib.Markup.printf_escaped( "<span color='%s'><big>%.2f €</big></span>", balance_color, balance) );
 
         //Gtk.Button edit_button = new Gtk.Button.from_icon_name( "list-remove", Gtk.IconSize.BUTTON );
 
@@ -129,7 +131,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                         account.id,
                         account.account_type,
                         account.account_number,
-                        account.balance
+                        double.parse(account.balance)
                     ) );
                 }
             }
@@ -143,9 +145,14 @@ public class MainWindow : Gtk.ApplicationWindow {
         try {
             transactions_liststore.clear();
 
-            foreach (var transaction in database.get_transactions_for_account(database.get_account(account_id))) {
+            var account = database.get_account(account_id);
+
+            double balance = double.parse(account.balance);
+
+            foreach (var transaction in database.get_transactions_for_account(account)) {
                 GHbci.Statement.prettify_statement(transaction);
-                var amount_color = transaction.amount < 0 ? "red": "black";
+                var amount_color  = transaction.amount < 0 ? "red": "black";
+                var balance_color = balance < 0 ? "red": "black";
                 string date = "%d.%d.%d".printf(transaction.date.get_day(), transaction.date.get_month(), transaction.date.get_year());
                 string valuta_date = "%d.%d.%d".printf(transaction.valuta_date.get_day(), transaction.valuta_date.get_month(), transaction.valuta_date.get_year());
 
@@ -155,7 +162,10 @@ public class MainWindow : Gtk.ApplicationWindow {
                     0, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", date, valuta_date),
                     1, GLib.Markup.escape_text(transaction.other_name),
                     2, GLib.Markup.escape_text(transaction.reference),
-                    3, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", amount_color, transaction.amount ) );
+                    3, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", amount_color, transaction.amount ),
+                    4, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", balance_color, balance ) );
+
+                balance -= transaction.amount;
             }
         } catch (Error e) {
             stderr.printf("ERROR: '%s'\n", e.message);
