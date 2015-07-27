@@ -105,6 +105,11 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         update_account_list();
         fill_transactions(1);
+
+        // add about action
+        var about_action = new SimpleAction ("about", null);
+        about_action.activate.connect (about_cb);
+        this.add_action (about_action);
     }
 
     public unowned Banking get_banking () {
