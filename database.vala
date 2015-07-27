@@ -113,6 +113,32 @@ public class Transaction : Object {
         return transaction;
     }
 
+    private Gda.SqlBuilderId set_select_field(Gda.SqlBuilder builder, string name, Value value) {
+        return builder.add_cond(
+            Gda.SqlOperatorType.EQ,
+            builder.add_field_id(name, "transactions"), 
+            builder.add_expr_value(null, value),
+            0);
+    }
+
+    public void set_select_fields(Gda.SqlBuilder builder) {
+        var fields = new Gda.SqlBuilderId[10];
+
+        fields[0] = set_select_field( builder, "account_id", account_id );
+        fields[1] = set_select_field( builder, "transaction_type", "" );
+        fields[2] = set_select_field( builder, "date", date );
+        fields[3] = set_select_field( builder, "valuta_date", valuta_date );
+        fields[4] = set_select_field( builder, "amount", amount );
+        fields[5] = set_select_field( builder, "currency", currency );
+        fields[6] = set_select_field( builder, "reference", reference );
+        fields[7] = set_select_field( builder, "other_name", other_name );
+        fields[8] = set_select_field( builder, "other_iban", other_iban );
+        fields[9] = set_select_field( builder, "other_bic", other_bic );
+
+        var where = builder.add_cond_v(Gda.SqlOperatorType.AND, fields);
+        builder.set_where(where);
+    }
+
     public void set_fields(Gda.SqlBuilder builder) {
         builder.add_field_value_as_gvalue( "account_id", account_id );
         builder.add_field_value_as_gvalue( "transaction_type", "" );
@@ -214,10 +240,24 @@ public class GBankDatabase : Object {
     }
 
     public void insert_transaction(Transaction transaction) throws Error {
-        var b = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
-        b.set_table("transactions");
-        transaction.set_fields(b);
-        this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        // check if transaction is already present
+        var builder = new Gda.SqlBuilder(Gda.SqlStatementType.SELECT);
+        builder.select_add_target("transactions", null);
+        transaction.set_select_fields(builder);
+        Gda.SqlBuilderId[] count_arguments = {builder.add_id("*")};
+        builder.select_add_field("*", "transactions", null);
+        var result = this.connection.statement_execute_select(builder.get_statement(), null);
+
+        var iter = result.create_iter();
+
+        if(!iter.move_next()) {
+            // save transaction
+            stdout.printf("save transaction");
+            builder = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
+            builder.set_table("transactions");
+            transaction.set_fields(builder);
+            this.connection.statement_execute_non_select(builder.get_statement(), null, null);
+        }
     }
 
     public void save_account(Account account) throws Error {
