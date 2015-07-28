@@ -91,6 +91,10 @@ public class Transaction : Object {
     public string other_name { get; set; }
     public string other_iban { get; set; }
     public string other_bic { get; set; }
+    // SEPA fields, not saved in database
+    public string eref { get; set; }
+    public string mref { get; set; }
+    public string cred { get; set; }
 
     public static Transaction from_iter(Gda.DataModelIter iter) {
         Date date = Date();
