@@ -110,6 +110,7 @@ public class Transaction : Object {
         transaction.other_name   = iter.get_value_for_field( "other_name" ).dup_string();
         transaction.other_iban   = iter.get_value_for_field( "other_iban" ).dup_string();
         transaction.other_bic    = iter.get_value_for_field( "other_bic" ).dup_string();
+        transaction.other_bic    = iter.get_value_for_field( "type" ).dup_string();
         return transaction;
     }
 
@@ -125,7 +126,7 @@ public class Transaction : Object {
         var fields = new Gda.SqlBuilderId[10];
 
         fields[0] = set_select_field( builder, "account_id", account_id );
-        fields[1] = set_select_field( builder, "transaction_type", "" );
+        fields[1] = set_select_field( builder, "transaction_type", transaction_type );
         fields[2] = set_select_field( builder, "date", date );
         fields[3] = set_select_field( builder, "valuta_date", valuta_date );
         fields[4] = set_select_field( builder, "amount", amount );
@@ -141,7 +142,7 @@ public class Transaction : Object {
 
     public void set_fields(Gda.SqlBuilder builder) {
         builder.add_field_value_as_gvalue( "account_id", account_id );
-        builder.add_field_value_as_gvalue( "transaction_type", "" );
+        builder.add_field_value_as_gvalue( "transaction_type", transaction_type );
         builder.add_field_value_as_gvalue( "date", date );
         builder.add_field_value_as_gvalue( "valuta_date", valuta_date );
         builder.add_field_value_as_gvalue( "amount", amount );

@@ -318,7 +318,7 @@ public class Banking {
             Transaction db_transaction = new Transaction();
             db_transaction.id = -1;
             db_transaction.account_id = account.id;
-            db_transaction.transaction_type = "";
+            db_transaction.transaction_type = statement.transaction_type;
             db_transaction.date = statement.booking_date;
             db_transaction.valuta_date = statement.valuta;
             db_transaction.amount = double.parse(statement.value);

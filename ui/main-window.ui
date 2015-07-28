@@ -172,6 +172,7 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="date_column">
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Date</property>
                             <child>
                               <object class="GtkCellRendererText" id="DateCellRenderer"/>
@@ -183,9 +184,14 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="type_column">
+                            <property name="resizable">True</property>
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Type</property>
                             <child>
-                              <object class="GtkCellRendererText" id="TypeCellRenderer"/>
+                              <object class="GtkCellRendererText" id="TypeCellRenderer">
+                                <property name="wrap_mode">word-char</property>
+                                <property name="wrap_width">200</property>
+                              </object>
                               <attributes>
                                 <attribute name="markup">1</attribute>
                               </attributes>
@@ -194,9 +200,14 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="purpose_column">
+                            <property name="resizable">True</property>
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Purpose</property>
                             <child>
-                              <object class="GtkCellRendererText" id="PurposeCellRenderer"/>
+                              <object class="GtkCellRendererText" id="PurposeCellRenderer">
+                                <property name="wrap_mode">word-char</property>
+                                <property name="wrap_width">300</property>
+                              </object>
                               <attributes>
                                 <attribute name="markup">2</attribute>
                               </attributes>
@@ -205,6 +216,7 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="amount_column">
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Amount</property>
                             <child>
                               <object class="GtkCellRendererText" id="AmountCellRenderer"/>
@@ -216,6 +228,7 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="balance_column">
+                            <property name="sizing">fixed</property>
                             <property name="title" translatable="yes">Balance</property>
                             <child>
                               <object class="GtkCellRendererText" id="BalanceCellRenderer"/>

@@ -165,7 +165,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                 transactions_liststore.append(out iter);
                 transactions_liststore.set (iter,
                     0, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", date, valuta_date),
-                    1, GLib.Markup.escape_text(transaction.other_name),
+                    1, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", transaction.transaction_type, transaction.other_name),
                     2, GLib.Markup.escape_text(transaction.reference),
                     3, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", amount_color, transaction.amount ),
                     4, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", balance_color, balance ) );
