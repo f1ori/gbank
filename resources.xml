@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/de/f1ori/gbank">
     <file preprocess="xml-stripblanks">ui/main-window.ui</file>
+    <file preprocess="xml-stripblanks">ui/statement-dialog.ui</file>
     <file preprocess="xml-stripblanks">ui/create-user-wizard.ui</file>
   </gresource>
 </gresources>

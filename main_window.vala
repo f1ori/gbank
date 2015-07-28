@@ -168,7 +168,8 @@ public class MainWindow : Gtk.ApplicationWindow {
                     1, GLib.Markup.printf_escaped( "<b>%s</b>\n%s", transaction.transaction_type, transaction.other_name),
                     2, GLib.Markup.escape_text(transaction.reference),
                     3, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", amount_color, transaction.amount ),
-                    4, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", balance_color, balance ) );
+                    4, GLib.Markup.printf_escaped( "<span color='%s' weight='bold'>%.2f €</span>", balance_color, balance ),
+                    5, transaction);
 
                 balance -= transaction.amount;
             }
@@ -246,5 +247,16 @@ public class MainWindow : Gtk.ApplicationWindow {
         uint context_id = statusbar.get_context_id( "hbci" );
         statusbar.remove_all( context_id );
         statusbar.push( context_id, message );
+    }
+
+    [GtkCallback]
+    void on_transactions_treeview_row_activated(Gtk.TreeView tree_view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
+        Gtk.TreeIter iter;
+        transactions_liststore.get_iter(out iter, path);
+        Value value;
+        transactions_liststore.get_value(iter, 5, out value);
+        Transaction transaction = value.get_object() as Transaction;
+        new StatementDialog(this, transaction);
+        //new Gtk.MessageDialog(this, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.OK_CANCEL, value.get_string()).show();
     }
 }
