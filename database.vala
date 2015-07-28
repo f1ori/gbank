@@ -252,7 +252,6 @@ public class GBankDatabase : Object {
 
         if(!iter.move_next()) {
             // save transaction
-            stdout.printf("save transaction");
             builder = new Gda.SqlBuilder(Gda.SqlStatementType.INSERT);
             builder.set_table("transactions");
             transaction.set_fields(builder);
