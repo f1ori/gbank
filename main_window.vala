@@ -261,11 +261,11 @@ public class MainWindow : Gtk.ApplicationWindow {
     void on_transactions_treeview_row_activated(Gtk.TreeView tree_view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
         Gtk.TreeIter iter;
         transactions_liststore.get_iter(out iter, path);
-        Value value;
-        transactions_liststore.get_value(iter, 5, out value);
-        Transaction transaction = value.get_object() as Transaction;
+
+        Transaction transaction;
+        transactions_liststore.get(iter, 5, out transaction);
+
         new StatementDialog(this, transaction);
-        //new Gtk.MessageDialog(this, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.OK_CANCEL, value.get_string()).show();
     }
 
     public bool on_filter_transactions( Gtk.TreeModel model, Gtk.TreeIter iter ) {
