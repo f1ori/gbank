@@ -21,10 +21,10 @@ class CheckUserJob : Object, Job {
         foreach (var account in account_list) {
             Account db_account = new Account();
             db_account.id = -1;
-            db_account.account_type = "bank";
+            db_account.account_type = account.account_type;
             db_account.account_number = account.number;
             db_account.bank_code = account.blz;
-            db_account.owner_name = account.name;
+            db_account.owner_name = account.owner_name;
             db_account.balance = "0";
             db_account.currency = account.currency;
             accounts.add( db_account );
