@@ -114,7 +114,6 @@ public class Transaction : Object {
         transaction.other_name   = iter.get_value_for_field( "other_name" ).dup_string();
         transaction.other_iban   = iter.get_value_for_field( "other_iban" ).dup_string();
         transaction.other_bic    = iter.get_value_for_field( "other_bic" ).dup_string();
-        transaction.other_bic    = iter.get_value_for_field( "type" ).dup_string();
         return transaction;
     }
 
