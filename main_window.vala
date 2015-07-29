@@ -72,6 +72,9 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Gtk.ListStore transactions_liststore;
 
     [GtkChild]
+    private Gtk.TreeModelFilter transactions_liststore_filtered;
+
+    [GtkChild]
     private Gtk.ListBoxRow all_accounts_row;
 
     [GtkChild]
@@ -89,6 +92,9 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     private Gtk.Image close_progress_image;
 
+    [GtkChild]
+    private Gtk.SearchEntry searchentry;
+
     private BankJobWindow bank_job_window;
     private Banking banking;
     private GBankDatabase database;
@@ -105,6 +111,8 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         update_account_list();
         fill_transactions(1);
+
+        transactions_liststore_filtered.set_visible_func(this.on_filter_transactions);
 
         // add about action
         var about_action = new SimpleAction ("about", null);
@@ -258,5 +266,25 @@ public class MainWindow : Gtk.ApplicationWindow {
         Transaction transaction = value.get_object() as Transaction;
         new StatementDialog(this, transaction);
         //new Gtk.MessageDialog(this, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.OK_CANCEL, value.get_string()).show();
+    }
+
+    public bool on_filter_transactions( Gtk.TreeModel model, Gtk.TreeIter iter ) {
+        Transaction transaction;
+        model.get( iter, 5, out transaction );
+
+        string search_string = this.searchentry.get_text().down();
+        foreach ( string keyword in search_string.split( " " ) ) {
+            if ( !transaction.reference.down().contains( keyword )
+                    && !transaction.other_name.down().contains( keyword )
+                    && !transaction.other_iban.down().contains( keyword )
+                    && !transaction.other_bic.down().contains( keyword ) )
+                return false;
+        }
+        return true;
+    }
+
+    [GtkCallback]
+    public void on_search_changed() {
+        this.transactions_liststore_filtered.refilter();
     }
 }
