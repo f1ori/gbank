@@ -25,6 +25,8 @@ class CheckUserJob : Object, Job {
             db_account.account_number = account.number;
             db_account.bank_code = account.blz;
             db_account.owner_name = account.owner_name;
+            db_account.bic = account.bic;
+            db_account.iban = account.iban;
             db_account.balance = "0";
             db_account.currency = account.currency;
             accounts.add( db_account );
@@ -89,6 +91,49 @@ class GetBalanceJob : Object, Job {
         banking.current_user = null;
 
         result_queue.push( (owned) balance );
+
+        // Schedule callback
+        Idle.add( (owned) callback );
+    }
+}
+
+class SendTransferJob : Object, Job {
+    private User user;
+    private Account account;
+    private AsyncQueue<bool> result_queue;
+    private SourceFunc callback;
+    private string destination_name;
+    private string destination_bic;
+    private string destination_iban;
+    private string reference;
+    private string amount;
+
+    public SendTransferJob(User user, Account account, AsyncQueue<bool> result_queue, owned SourceFunc callback,
+            string destination_name, string destination_bic, string destination_iban,
+            string reference, string amount) {
+        this.user = user;
+        this.account = account;
+        this.result_queue = result_queue;
+        this.callback = (owned) callback;
+
+        this.destination_name = destination_name;
+        this.destination_bic = destination_bic;
+        this.destination_iban = destination_iban;
+        this.reference = reference;
+        this.amount = amount;
+    }
+
+    public void run(Banking banking, GHbci.Context ghbci_context) {
+        banking.current_user = user;
+        ghbci_context.add_passport(user.bank_code, user.user_id);
+
+        var success = ghbci_context.send_transfer(user.bank_code, user.user_id, account.account_number,
+            account.owner_name, account.bic, account.iban,
+            destination_name, destination_bic, destination_iban, reference, amount);
+
+        banking.current_user = null;
+
+        result_queue.push( success );
 
         // Schedule callback
         Idle.add( (owned) callback );
@@ -171,7 +216,7 @@ public class Banking {
             warning("No user defined to answer: %s", message);
             return "";
         }
-        debug("reason: %Iu, %s\n", reason, message);
+        stdout.printf("reason: %Iu, '%s'\n", reason, message);
         switch(reason) {
             case GHbci.Reason.NEED_COUNTRY:
                 return "DE";
@@ -193,10 +238,20 @@ public class Banking {
             case GHbci.Reason.NEED_PASSPHRASE_SAVE:
                 return "42";
             case GHbci.Reason.NEED_PT_PIN:
-                return get_password();
+                return get_password("Please enter password:");
             case GHbci.Reason.NEED_PT_SECMECH:
                 stdout.printf("sec mech: %s\n", optional);
                 return "962";
+            case GHbci.Reason.NEED_PT_TAN:
+                var hint = new StringBuilder();
+                foreach(var word in message.split_set("\n \t")) {
+                    if (word.length > 0) {
+                        hint.append(word);
+                        hint.append(" ");
+                    }
+                }
+                var prompt = "Please enter tan (%s):".printf(hint.str);
+                return get_password(prompt);
         }
         return "";
     }
@@ -237,12 +292,12 @@ public class Banking {
     }
 
 
-    public string get_password() {
+    public string get_password(string prompt) {
         // TODO: move gui stuff out of this module
         AsyncQueue<string?> result = new AsyncQueue<string?>();
         MainContext.default().invoke( () => {
             string password = null;
-            PasswordDialog dialog = new PasswordDialog(bank_job_window);
+            PasswordDialog dialog = new PasswordDialog(bank_job_window, prompt);
             switch (dialog.run()) {
                 case Gtk.ResponseType.OK:
                     password = dialog.password_entry.text;
@@ -338,5 +393,16 @@ public class Banking {
         yield;
         account.balance = result_queue.pop();
         db.save_account(account);
+    }
+
+    public async void send_transfer(User user, Account account, GBankDatabase db,
+            string destination_name, string destination_bic, string destination_iban,
+            string reference, string amount) throws Error {
+        var result_queue = new AsyncQueue<bool>();
+        jobs.push( new SendTransferJob( user, account, result_queue, send_transfer.callback,
+                destination_name, destination_bic, destination_iban, reference, amount) );
+
+        yield;
+        result_queue.pop();
     }
 }

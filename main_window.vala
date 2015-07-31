@@ -99,6 +99,8 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Banking banking;
     private GBankDatabase database;
 
+    private Account current_account = null;
+
     public MainWindow (Gtk.Application app) {
         Object (application: app);
 
@@ -181,6 +183,8 @@ public class MainWindow : Gtk.ApplicationWindow {
 
                 balance -= transaction.amount;
             }
+
+            this.current_account = account;
         } catch (Error e) {
             stderr.printf("ERROR: '%s'\n", e.message);
         }
@@ -286,5 +290,10 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkCallback]
     public void on_search_changed() {
         this.transactions_liststore_filtered.refilter();
+    }
+
+    [GtkCallback]
+    public void on_transfer_button_clicked() {
+        new NewTransferDialog(this, current_account);
     }
 }

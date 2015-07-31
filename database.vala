@@ -44,13 +44,15 @@ public class User : Object {
 }
 
 public class Account : Object {
-    public static const string columns = "id, user_id, account_type, owner_name, account_number, bank_code, balance, currency";
+    public static const string columns = "id, user_id, account_type, owner_name, account_number, bank_code, bic, iban, balance, currency";
     public int id;
     public int user_id;
     public string account_type;
     public string owner_name;
     public string account_number;
     public string bank_code;
+    public string bic;
+    public string iban;
     public string balance;
     public string currency;
 
@@ -62,6 +64,8 @@ public class Account : Object {
         account.owner_name   = iter.get_value_for_field( "owner_name" ).dup_string();
         account.account_number  = iter.get_value_for_field( "account_number" ).dup_string();
         account.bank_code    = iter.get_value_for_field( "bank_code" ).dup_string();
+        account.bic          = iter.get_value_for_field( "bic" ).dup_string();
+        account.iban         = iter.get_value_for_field( "iban" ).dup_string();
         account.balance      = iter.get_value_for_field( "balance" ).dup_string();
         account.currency     = iter.get_value_for_field( "currency" ).dup_string();
         return account;
@@ -73,6 +77,8 @@ public class Account : Object {
         builder.add_field_value_as_gvalue( "owner_name", this.owner_name );
         builder.add_field_value_as_gvalue( "account_number", this.account_number );
         builder.add_field_value_as_gvalue( "bank_code", this.bank_code );
+        builder.add_field_value_as_gvalue( "bic", this.bic );
+        builder.add_field_value_as_gvalue( "iban", this.iban );
         builder.add_field_value_as_gvalue( "balance", this.balance );
         builder.add_field_value_as_gvalue( "currency", this.currency );
     }
@@ -281,7 +287,7 @@ public class GBankDatabase : Object {
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS version (version);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO version (version) VALUES (1);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech);");
-        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, balance, currency);");
+        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, bic, iban, balance, currency);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, date, valuta_date, amount, currency, reference, other_name, other_iban, other_bic);");
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, 'xxx', 'xxx', 'xxx', 'xxx', 'de', 'pintan', 'xxx', 300, 1, 1);");
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO accounts (id, user_id, account_type, owner_name, account_number, bank_code, balance, currency) VALUES (1, 1, 'bank', 'xxx', 'xxx', 'xxx', '1000,00', 'EUR');");

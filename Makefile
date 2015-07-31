@@ -3,6 +3,7 @@ VALAFILES=gbank.vala \
 	  banking.vala database.vala \
 	  create_user_wizard.vala \
 	  statement_dialog.vala \
+	  new_transfer_dialog.vala \
 	  bank_job_window.vala \
 	  main_window.vala
 

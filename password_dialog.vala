@@ -2,13 +2,13 @@
 public class PasswordDialog : Gtk.Dialog {
     public Gtk.Entry password_entry;
 
-    public PasswordDialog(Gtk.Window parent) {
+    public PasswordDialog(Gtk.Window parent, string prompt) {
         this.title = "Enter Password";
         this.set_transient_for (parent);
         this.set_modal (true);
         this.border_width = 5;
         set_default_size (500, 180);
-        var label = new Gtk.Label ("Please enter password:");
+        var label = new Gtk.Label (prompt);
         password_entry = new Gtk.Entry();
         password_entry.input_purpose = Gtk.InputPurpose.PASSWORD;
         password_entry.set_visibility (false);
