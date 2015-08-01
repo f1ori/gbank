@@ -5,6 +5,8 @@ public class NewTransferDialog : Gtk.Dialog {
     [GtkChild]
     private Gtk.ListStore accounts_liststore;
     [GtkChild]
+    private Gtk.ListStore contacts_liststore;
+    [GtkChild]
     private Gtk.ComboBox account_combobox;
     [GtkChild]
     private Gtk.Entry name_entry;
@@ -43,6 +45,20 @@ public class NewTransferDialog : Gtk.Dialog {
             stderr.printf("ERROR: '%s'\n", e.message);
         }
 
+        try {
+            foreach (var contact in database.get_contacts()) {
+                Gtk.TreeIter iter ;
+                contacts_liststore.append(out iter);
+                contacts_liststore.set (iter,
+                    0, contact.name,
+                    1, contact.iban,
+                    2, contact.bic,
+                    3, "%s %s".printf(contact.name, contact.iban));
+            }
+        } catch (Error e) {
+            stderr.printf("ERROR: '%s'\n", e.message);
+        }
+
         this.show_all();
     }
 
@@ -67,6 +83,22 @@ public class NewTransferDialog : Gtk.Dialog {
     [GtkCallback]
     public void on_cancel_button_clicked() {
         destroy();
+    }
+
+    [GtkCallback]
+    public bool on_name_entrycompletion_match_selected(Gtk.TreeModel model, Gtk.TreeIter iter) {
+        string name, iban, bic;
+        model.get(iter, 0, out name);
+        model.get(iter, 1, out iban);
+        model.get(iter, 2, out bic);
+
+        name_entry.set_text(name);
+        iban_entry.set_text(iban);
+        bic_entry.set_text(bic);
+
+        amount_spinbutton.grab_focus();
+
+        return true;
     }
 
 }

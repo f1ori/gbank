@@ -163,6 +163,20 @@ public class Transaction : Object {
     }
 }
 
+public class Contact : Object {
+    public string name;
+    public string iban;
+    public string bic;
+
+    public static Contact from_iter(Gda.DataModelIter iter) {
+        var contact = new Contact();
+        contact.name = iter.get_value_for_field( "other_name" ).dup_string();
+        contact.iban = iter.get_value_for_field( "other_iban" ).dup_string();
+        contact.bic  = iter.get_value_for_field( "other_bic" ).dup_string();
+        return contact;
+    }
+}
+
 
 public class GBankDatabase : Object {
     private Gda.Connection connection;
@@ -244,6 +258,22 @@ public class GBankDatabase : Object {
         List<Transaction> list = new List<Transaction>();
         while ( transaction_iter.move_next() ) {
             list.append( Transaction.from_iter(transaction_iter) );
+        }
+
+        return list;
+    }
+
+    public List<Contact> get_contacts() throws Error {
+        Gda.DataModel contacts_data = this.connection.execute_select_command(
+            "SELECT DISTINCT other_name, other_iban, other_bic "
+            +"FROM transactions "
+            +"WHERE length(other_name)>0 AND length(other_iban)>0 AND length(other_bic)>0 "
+            +"ORDER BY other_name;");
+        Gda.DataModelIter contacts_iter = contacts_data.create_iter();
+
+        List<Contact> list = new List<Contact>();
+        while ( contacts_iter.move_next() ) {
+            list.append( Contact.from_iter(contacts_iter) );
         }
 
         return list;
