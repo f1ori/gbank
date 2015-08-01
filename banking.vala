@@ -1,5 +1,6 @@
 
 interface Job : Object {
+    public abstract User get_user();
     public abstract void run(Banking banking, GHbci.Context ghbci_context);
 }
 
@@ -15,7 +16,6 @@ class CheckUserJob : Object, Job {
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
-        banking.current_user = user;
         ghbci_context.add_passport(user.bank_code, user.user_id);
         var account_list = ghbci_context.get_accounts(user.bank_code, user.user_id);
         foreach (var account in account_list) {
@@ -31,10 +31,13 @@ class CheckUserJob : Object, Job {
             db_account.currency = account.currency;
             accounts.add( db_account );
         }
-        banking.current_user = null;
 
         // Schedule callback
         Idle.add((owned) callback);
+    }
+
+    public User get_user() {
+        return this.user;
     }
 }
 
@@ -52,7 +55,6 @@ class GetStatementsJob : Object, Job {
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
-        banking.current_user = user;
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
         var statements = ghbci_context.get_statements(user.bank_code, user.user_id, account.account_number);
@@ -60,12 +62,14 @@ class GetStatementsJob : Object, Job {
         foreach(GHbci.Statement statement in statements)
             statements_list.add (statement);
 
-        banking.current_user = null;
-
         result_queue.push( (owned) statements_list );
 
         // Schedule callback
         Idle.add( (owned) callback );
+    }
+
+    public User get_user() {
+        return this.user;
     }
 }
 
@@ -83,17 +87,18 @@ class GetBalanceJob : Object, Job {
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
-        banking.current_user = user;
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
         var balance = ghbci_context.get_balances(user.bank_code, user.user_id, account.account_number);
-
-        banking.current_user = null;
 
         result_queue.push( (owned) balance );
 
         // Schedule callback
         Idle.add( (owned) callback );
+    }
+
+    public User get_user() {
+        return this.user;
     }
 }
 
@@ -124,19 +129,20 @@ class SendTransferJob : Object, Job {
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
-        banking.current_user = user;
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
         var success = ghbci_context.send_transfer(user.bank_code, user.user_id, account.account_number,
             account.owner_name, account.bic, account.iban,
             destination_name, destination_bic, destination_iban, reference, amount);
 
-        banking.current_user = null;
-
         result_queue.push( success );
 
         // Schedule callback
         Idle.add( (owned) callback );
+    }
+
+    public User get_user() {
+        return this.user;
     }
 }
 
@@ -155,6 +161,10 @@ class ListBanksJob : Object, Job {
 
         result_queue.push( (owned) banks );
     }
+
+    public User get_user() {
+        return null;
+    }
 }
 
 class GetBankNameJob : Object, Job {
@@ -168,6 +178,10 @@ class GetBankNameJob : Object, Job {
 
     public void run( Banking banking, GHbci.Context ghbci_context ) {
         result_queue.push( ghbci_context.get_name_for_blz( blz ) );
+    }
+
+    public User get_user() {
+        return null;
     }
 }
 
@@ -183,14 +197,19 @@ class GetPinTanUrlJob : Object, Job {
     public void run( Banking banking, GHbci.Context ghbci_context ) {
         result_queue.push( ghbci_context.get_pin_tan_url_for_blz( blz ) );
     }
+
+    public User get_user() {
+        return null;
+    }
 }
 
 public class Banking {
-    public Thread<bool> thread;
+    private Thread<bool> thread;
     private BankJobWindow bank_job_window;
-    GHbci.Context ghbci_context;
-    public User? current_user;
-    AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
+    private GHbci.Context ghbci_context;
+    private User? current_user;
+    private AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
+
     public signal void log(string message, int64 level);
     public signal void status_message(string message);
 
@@ -238,7 +257,7 @@ public class Banking {
             case GHbci.Reason.NEED_PASSPHRASE_SAVE:
                 return "42";
             case GHbci.Reason.NEED_PT_PIN:
-                return get_password("Please enter password:");
+                return get_password("Please enter password for %s:".printf(current_user.bank_name));
             case GHbci.Reason.NEED_PT_SECMECH:
                 stdout.printf("sec mech: %s\n", optional);
                 return "962";
@@ -323,7 +342,9 @@ public class Banking {
 
         while(true) {
             Job job = jobs.pop ();
+            this.current_user = job.get_user();
             job.run(this, ghbci_context);
+            this.current_user = null;
         }
     }
 
