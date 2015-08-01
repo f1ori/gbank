@@ -12,6 +12,12 @@
       <column type="GObject"/>
     </columns>
   </object>
+  <object class="GtkAdjustment" id="amount_adjustment">
+    <property name="upper">100000</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+    <property name="page_size">1</property>
+  </object>
   <template class="NewTransferDialog" parent="GtkDialog">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">New Transfer</property>
@@ -229,16 +235,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="amount_entry">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">7</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkEntry" id="reference_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -257,6 +253,19 @@
                 <property name="left_attach">0</property>
                 <property name="top_attach">6</property>
                 <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="amount_spinbutton">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">amount_adjustment</property>
+                <property name="climb_rate">1</property>
+                <property name="digits">2</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">7</property>
               </packing>
             </child>
           </object>

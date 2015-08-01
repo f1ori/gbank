@@ -15,7 +15,7 @@ public class NewTransferDialog : Gtk.Dialog {
     [GtkChild]
     private Gtk.Entry bank_entry;
     [GtkChild]
-    private Gtk.Entry amount_entry;
+    private Gtk.SpinButton amount_spinbutton;
     [GtkChild]
     private Gtk.Entry reference_entry;
 
@@ -59,7 +59,7 @@ public class NewTransferDialog : Gtk.Dialog {
 
         this.main_window.get_banking().send_transfer(user, account, database,
             name_entry.get_text(), bic_entry.get_text(), iban_entry.get_text(),
-            reference_entry.get_text(), amount_entry.get_text());
+            reference_entry.get_text(), "%.2f".printf(amount_spinbutton.get_value()));
 
         destroy();
     }
