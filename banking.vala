@@ -50,25 +50,22 @@ class CheckUserJob : Object, Job {
 class GetStatementsJob : Object, Job {
     private User user;
     private Account account;
-    private AsyncQueue<Gee.LinkedList<GHbci.Statement>> result_queue;
+    private unowned Gee.LinkedList<GHbci.Statement> statements;
     private SourceFunc callback;
 
-    public GetStatementsJob(User user, Account account, AsyncQueue<Gee.LinkedList<GHbci.Statement>> result_queue, owned SourceFunc callback) {
+    public GetStatementsJob(User user, Account account, ref Gee.LinkedList<GHbci.Statement> statements, owned SourceFunc callback) {
         this.user = user;
         this.account = account;
-        this.result_queue = result_queue;
+        this.statements = statements;
         this.callback = (owned) callback;
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
-        var statements = ghbci_context.get_statements(user.bank_code, user.user_id, account.account_number);
-        Gee.LinkedList<GHbci.Statement> statements_list = new Gee.LinkedList<GHbci.Statement> ();
-        foreach(GHbci.Statement statement in statements)
-            statements_list.add (statement);
-
-        result_queue.push( (owned) statements_list );
+        var statements_list = ghbci_context.get_statements(user.bank_code, user.user_id, account.account_number);
+        foreach(GHbci.Statement statement in statements_list)
+            statements.add (statement);
 
         // Schedule callback
         Idle.add( (owned) callback );
@@ -82,22 +79,20 @@ class GetStatementsJob : Object, Job {
 class GetBalanceJob : Object, Job {
     private User user;
     private Account account;
-    private AsyncQueue<string> result_queue;
+    private unowned StringBuilder balance;
     private SourceFunc callback;
 
-    public GetBalanceJob(User user, Account account, AsyncQueue<string> result_queue, owned SourceFunc callback) {
+    public GetBalanceJob(User user, Account account, ref StringBuilder balance, owned SourceFunc callback) {
         this.user = user;
         this.account = account;
-        this.result_queue = result_queue;
+        this.balance = balance;
         this.callback = (owned) callback;
     }
 
     public void run(Banking banking, GHbci.Context ghbci_context) {
         ghbci_context.add_passport(user.bank_code, user.user_id);
 
-        var balance = ghbci_context.get_balances(user.bank_code, user.user_id, account.account_number);
-
-        result_queue.push( (owned) balance );
+        balance.assign(ghbci_context.get_balances(user.bank_code, user.user_id, account.account_number));
 
         // Schedule callback
         Idle.add( (owned) callback );
@@ -111,7 +106,7 @@ class GetBalanceJob : Object, Job {
 class SendTransferJob : Object, Job {
     private User user;
     private Account account;
-    private AsyncQueue<bool> result_queue;
+    private Value result;
     private SourceFunc callback;
     private string destination_name;
     private string destination_bic;
@@ -119,12 +114,12 @@ class SendTransferJob : Object, Job {
     private string reference;
     private string amount;
 
-    public SendTransferJob(User user, Account account, AsyncQueue<bool> result_queue, owned SourceFunc callback,
+    public SendTransferJob(User user, Account account, ref Value result, owned SourceFunc callback,
             string destination_name, string destination_bic, string destination_iban,
             string reference, string amount) {
         this.user = user;
         this.account = account;
-        this.result_queue = result_queue;
+        this.result = result;
         this.callback = (owned) callback;
 
         this.destination_name = destination_name;
@@ -141,7 +136,7 @@ class SendTransferJob : Object, Job {
             account.owner_name, account.bic, account.iban,
             destination_name, destination_bic, destination_iban, reference, amount);
 
-        result_queue.push( success );
+        result.set_boolean(success);
 
         // Schedule callback
         Idle.add( (owned) callback );
@@ -265,12 +260,15 @@ public class Banking {
             case GHbci.Reason.NEED_PASSPHRASE_SAVE:
                 return "42";
             case GHbci.Reason.NEED_PT_PIN:
-                AsyncQueue<string> result = new AsyncQueue<string>();
+                string password = null;
+                var result = new AsyncQueue<int>();
                 MainContext.default().invoke( () => {
-                    result.push(banking_ui.get_password(current_user));
+                    password = banking_ui.get_password(current_user);
+                    result.push(1);
                     return Source.REMOVE;
                 });
-                return result.pop();
+                result.pop();
+                return password;
             case GHbci.Reason.NEED_PT_SECMECH:
                 stdout.printf("sec mech: %s\n", optional);
                 return "962";
@@ -283,12 +281,15 @@ public class Banking {
                     }
                 }
                 string hint_str = hint.str;
-                AsyncQueue<string> result = new AsyncQueue<string>();
+                string password = null;
+                var result = new AsyncQueue<int>();
                 MainContext.default().invoke( () => {
-                    result.push(banking_ui.get_tan(hint_str));
+                    password = banking_ui.get_tan(hint_str);
+                    result.push(1);
                     return Source.REMOVE;
                 });
-                return result.pop();
+                result.pop();
+                return password;
         }
         return "";
     }
@@ -378,12 +379,11 @@ public class Banking {
     }
 
     public async void fetch_transactions(User user, Account account, GBankDatabase db) throws Error {
-        var result_queue = new AsyncQueue<Gee.LinkedList<GHbci.Statement>>();
+        var statements = new Gee.LinkedList<GHbci.Statement>();
 
-        jobs.push( new GetStatementsJob( user, account, result_queue, fetch_transactions.callback ) );
+        jobs.push( new GetStatementsJob( user, account, ref statements, fetch_transactions.callback ) );
 
         yield;
-        Gee.LinkedList<GHbci.Statement> statements = result_queue.pop();
 
         foreach (GHbci.Statement statement in statements) {
             Transaction db_transaction = new Transaction();
@@ -403,22 +403,21 @@ public class Banking {
     }
 
     public async void get_balance(User user, Account account, GBankDatabase db) throws Error {
-        var result_queue = new AsyncQueue<string>();
-        jobs.push( new GetBalanceJob( user, account, result_queue, get_balance.callback ) );
+        var balance = new StringBuilder();
+        jobs.push( new GetBalanceJob( user, account, ref balance, get_balance.callback ) );
 
         yield;
-        account.balance = result_queue.pop();
+        account.balance = balance.str;
         db.save_account(account);
     }
 
     public async void send_transfer(User user, Account account, GBankDatabase db,
             string destination_name, string destination_bic, string destination_iban,
             string reference, string amount) throws Error {
-        var result_queue = new AsyncQueue<bool>();
-        jobs.push( new SendTransferJob( user, account, result_queue, send_transfer.callback,
+        Value result = new Value(type(bool));
+        jobs.push( new SendTransferJob( user, account, ref result, send_transfer.callback,
                 destination_name, destination_bic, destination_iban, reference, amount) );
 
         yield;
-        result_queue.pop();
     }
 }
