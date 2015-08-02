@@ -342,7 +342,7 @@ public class Banking {
                         hint.append(" ");
                     }
                 }
-                string hint_str = hint.str;
+                string hint_str = hint.str.replace("<br>", "\n");
                 string password = null;
                 var result = new AsyncQueue<int>();
                 MainContext.default().invoke( () => {

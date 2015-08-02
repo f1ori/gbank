@@ -40,7 +40,7 @@ public class BankingUI : Object, IBankingUI {
     }
 
     public string get_tan(string hint){
-        string prompt = "Please enter tan (%s):".printf(hint);
+        string prompt = "Please enter tan\n%s".printf(hint);
         return run_password_dialog(prompt);
     }
 
