@@ -270,11 +270,12 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     [GtkCallback]
     void on_transactions_treeview_row_activated(Gtk.TreeView tree_view, Gtk.TreePath path, Gtk.TreeViewColumn column) {
+        Gtk.TreeModel model = tree_view.get_model();
         Gtk.TreeIter iter;
-        transactions_liststore.get_iter(out iter, path);
+        model.get_iter(out iter, path);
 
         Transaction transaction;
-        transactions_liststore.get(iter, 5, out transaction);
+        model.get(iter, 5, out transaction);
 
         new StatementDialog(this, transaction);
     }
