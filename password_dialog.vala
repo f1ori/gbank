@@ -15,6 +15,9 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * password dialog
+ */
 public class PasswordDialog : Gtk.Dialog {
     public Gtk.Entry password_entry;
 

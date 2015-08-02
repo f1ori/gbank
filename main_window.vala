@@ -15,6 +15,13 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * main application window
+ */
+
+/**
+ * ListBoxRow for a bank entry in the sidebar
+ */
 class BankRow : Gtk.ListBoxRow {
     private int db_id;
     private string bank_name;
@@ -36,6 +43,9 @@ class BankRow : Gtk.ListBoxRow {
     }
 }
 
+/**
+ * ListBoxRow for a bank account in the sidebar
+ */
 class AccountRow : Gtk.ListBoxRow {
     private int db_id;
     private string account_name;
@@ -78,6 +88,9 @@ class AccountRow : Gtk.ListBoxRow {
     }
 }
 
+/**
+ * main application window
+ */
 [GtkTemplate (ui = "/de/f1ori/gbank/ui/main-window.ui")]
 public class MainWindow : Gtk.ApplicationWindow {
 
@@ -158,7 +171,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                 row.destroy();
         }
         try {
-            foreach (var user in database.get_users()) {
+            foreach (var user in database.get_all_users()) {
                 account_list.add( new BankRow(
                     user.id,
                     user.bank_name
@@ -227,7 +240,7 @@ public class MainWindow : Gtk.ApplicationWindow {
     }
 
     async void update_accounts() {
-        foreach (var user in database.get_users() ) {
+        foreach (var user in database.get_all_users() ) {
             foreach (var account in database.get_accounts_for_user(user)) {
                 yield banking.fetch_transactions(user, account, database);
                 yield banking.get_balance(user, account, database);

@@ -15,6 +15,9 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Window showing logs
+ */
 public class BankJobWindow : Gtk.Window {
     private Gtk.ProgressBar progress_bar;
     private Gtk.TextView log;

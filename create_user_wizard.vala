@@ -15,6 +15,11 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /**
+  * Wizard leading through the configuration of a User account at a bank
+  * and associated bank accounts
+  */
+
  [GtkTemplate (ui = "/de/f1ori/gbank/ui/create-user-wizard.ui")]
 public class CreateUserWizard : Gtk.Assistant {
     private MainWindow main_window;

@@ -15,6 +15,9 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Dialog displaying information about a statement
+ */
 [GtkTemplate (ui = "/de/f1ori/gbank/ui/statement-dialog.ui")]
 public class StatementDialog : Gtk.Dialog {
     private MainWindow main_window;

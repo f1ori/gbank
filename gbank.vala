@@ -15,6 +15,9 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * main application object
+ */
 class GBank : Gtk.Application {
     public GBank () {
         Object (application_id: "com.github.gbank", flags: GLib.ApplicationFlags.FLAGS_NONE);

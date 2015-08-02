@@ -15,7 +15,11 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- [GtkTemplate (ui = "/de/f1ori/gbank/ui/new-transfer-dialog.ui")]
+/**
+ * Dialog to issue new transfers
+ */
+
+[GtkTemplate (ui = "/de/f1ori/gbank/ui/new-transfer-dialog.ui")]
 public class NewTransferDialog : Gtk.Dialog {
     private MainWindow main_window;
 
@@ -45,7 +49,7 @@ public class NewTransferDialog : Gtk.Dialog {
 
         var database = main_window.get_database();
         try {
-            foreach (var user in database.get_users()) {
+            foreach (var user in database.get_all_users()) {
                 foreach (var account in database.get_accounts_for_user(user) ) {
                     Gtk.TreeIter iter ;
                     accounts_liststore.append(out iter);
@@ -63,7 +67,7 @@ public class NewTransferDialog : Gtk.Dialog {
         }
 
         try {
-            foreach (var contact in database.get_contacts()) {
+            foreach (var contact in database.get_all_contacts()) {
                 Gtk.TreeIter iter ;
                 contacts_liststore.append(out iter);
                 contacts_liststore.set (iter,

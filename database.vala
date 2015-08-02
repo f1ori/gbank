@@ -15,6 +15,13 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * This module handles all database interaction.
+ */
+
+/**
+ * a User account at a bank (wrapper for database)
+ */
 public class User : Object {
     public int id;
     public string user_id;
@@ -57,6 +64,9 @@ public class User : Object {
     }
 }
 
+/**
+ * Bank account belonging to a user account at a bank (wrapper for database)
+ */
 public class Account : Object {
     public static const string columns = "id, user_id, account_type, owner_name, account_number, bank_code, bic, iban, balance, currency";
     public int id;
@@ -96,6 +106,9 @@ public class Account : Object {
     }
 }
 
+/**
+ * Transaction / bank statement
+ */
 public class Transaction : Object {
     public static const string columns = "id, account_id, transaction_type, date, valuta_date, amount, currency, reference, other_name, other_iban, other_bic";
     public int id;
@@ -173,11 +186,17 @@ public class Transaction : Object {
     }
 }
 
+/**
+ * Contact with name, iban and bic, used for transfers
+ */
 public class Contact : Object {
     public string name;
     public string iban;
     public string bic;
 
+    /**
+     * create contact from other_* fields of a transaction
+     */
     public Contact.from_iter(Gda.DataModelIter iter) {
         this.name = iter.get_value_for_field( "other_name" ).dup_string();
         this.iban = iter.get_value_for_field( "other_iban" ).dup_string();
@@ -185,7 +204,9 @@ public class Contact : Object {
     }
 }
 
-
+/**
+ * Provides database access
+ */
 public class GBankDatabase : Object {
     private Gda.Connection connection;
 
@@ -204,7 +225,7 @@ public class GBankDatabase : Object {
         return new User.from_iter(user_iter);
     }
 
-    public List<User> get_users() throws Error {
+    public List<User> get_all_users() throws Error {
 
         Gda.DataModel user_data = this.connection.execute_select_command("SELECT %s FROM users;".printf(User.columns));
         Gda.DataModelIter user_iter = user_data.create_iter();
@@ -271,7 +292,7 @@ public class GBankDatabase : Object {
         return list;
     }
 
-    public List<Contact> get_contacts() throws Error {
+    public List<Contact> get_all_contacts() throws Error {
         Gda.DataModel contacts_data = this.connection.execute_select_command(
             "SELECT DISTINCT other_name, other_iban, other_bic "
             +"FROM transactions "

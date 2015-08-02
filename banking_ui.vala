@@ -15,7 +15,10 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- public class BankingUI : Object, IBankingUI {
+/**
+ * Provide UI implementations for callbacks of hbci4java-glib
+ */
+public class BankingUI : Object, IBankingUI {
 
     private HashTable<string, string> password_cache;
     private MainWindow main_window;

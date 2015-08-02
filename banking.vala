@@ -15,17 +15,33 @@
  *  along with gbank.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * This module handles interactions with hbci4java-glib,
+ * especially of loading into a seperate thread
+ */
+
+/**
+ * generic job interface to be executed in a seperate thread
+ */
 interface Job : Object {
+    /** user to be used for callbacks */
     public abstract User? get_user();
+    /** execute job */
     public abstract void run(Banking banking, GHbci.Context ghbci_context);
 }
 
+/**
+ * callbacks requiring UI interaction
+ */
 public interface IBankingUI : Object {
     public abstract string get_password(User user);
     public abstract string get_tan(string hint);
     public abstract void wrong_password(User user);
 }
 
+/**
+ * job verifying that user account exists and fetch list of bank accounts
+ */
 class CheckUserJob : Object, Job {
     private User user;
     private unowned Gee.ArrayList<Account> accounts;
@@ -63,6 +79,9 @@ class CheckUserJob : Object, Job {
     }
 }
 
+/**
+ * job to fetch all statements of a bank account
+ */
 class GetStatementsJob : Object, Job {
     private User user;
     private Account account;
@@ -92,6 +111,9 @@ class GetStatementsJob : Object, Job {
     }
 }
 
+/**
+ * job to fetch the balance of a bank account
+ */
 class GetBalanceJob : Object, Job {
     private User user;
     private Account account;
@@ -119,6 +141,9 @@ class GetBalanceJob : Object, Job {
     }
 }
 
+/**
+ * job to send a transfer
+ */
 class SendTransferJob : Object, Job {
     private User user;
     private Account account;
@@ -163,6 +188,11 @@ class SendTransferJob : Object, Job {
     }
 }
 
+/**
+ * job to assemble the complete list of banks and bank codes
+ *
+ * no network connection required
+ */
 class ListBanksJob : Object, Job {
     private unowned AsyncQueue<List<string>> result_queue;
 
@@ -184,6 +214,11 @@ class ListBanksJob : Object, Job {
     }
 }
 
+/**
+ * job: resolve bank name for bank code
+ *
+ * no network connection required
+ */
 class GetBankNameJob : Object, Job {
     private unowned AsyncQueue<string> result_queue;
     private string blz;
@@ -202,6 +237,11 @@ class GetBankNameJob : Object, Job {
     }
 }
 
+/**
+ * job: get url for online banking of the bank with the specified bank code
+ *
+ * no network connection required
+ */
 class GetPinTanUrlJob : Object, Job {
     private unowned AsyncQueue<string> result_queue;
     private string blz;
@@ -220,6 +260,12 @@ class GetPinTanUrlJob : Object, Job {
     }
 }
 
+/**
+ * Capsules a hbci4java-glib context
+ *
+ * Provides async and sync methods for online banking and handles callbacks.
+ * All hbci4java-glib calls are dispatched to a seperate thread
+ */
 public class Banking {
     private Thread<bool> thread;
     private BankJobWindow bank_job_window;
