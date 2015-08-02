@@ -13,20 +13,18 @@ public class User : Object {
     public int hbci_version;
     public static const string columns = "id, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech";
 
-    public static User from_iter(Gda.DataModelIter iter) {
-        User user = new User();
-        user.id          = iter.get_value_for_field( "id" ).get_int();
-        user.user_id     = iter.get_value_for_field( "user_id" ).get_string();
-        user.customer_id = iter.get_value_for_field( "customer_id" ).get_string();
-        user.bank_code   = iter.get_value_for_field( "bank_code" ).get_string();
-        user.bank_name   = iter.get_value_for_field( "bank_name" ).get_string();
-        user.country     = iter.get_value_for_field( "country" ).get_string();
-        user.token_type  = iter.get_value_for_field( "token_type" ).get_string();
-        user.host        = iter.get_value_for_field( "host" ).get_string();
-        user.port        = iter.get_value_for_field( "port" ).get_string();
-        user.hbci_version = iter.get_value_for_field( "hbci_version" ).get_int();
-        user.sec_mech    = iter.get_value_for_field( "sec_mech" ).get_string();
-        return user;
+    public User.from_iter(Gda.DataModelIter iter) {
+        this.id          = iter.get_value_for_field( "id" ).get_int();
+        this.user_id     = iter.get_value_for_field( "user_id" ).get_string();
+        this.customer_id = iter.get_value_for_field( "customer_id" ).get_string();
+        this.bank_code   = iter.get_value_for_field( "bank_code" ).get_string();
+        this.bank_name   = iter.get_value_for_field( "bank_name" ).get_string();
+        this.country     = iter.get_value_for_field( "country" ).get_string();
+        this.token_type  = iter.get_value_for_field( "token_type" ).get_string();
+        this.host        = iter.get_value_for_field( "host" ).get_string();
+        this.port        = iter.get_value_for_field( "port" ).get_string();
+        this.hbci_version = iter.get_value_for_field( "hbci_version" ).get_int();
+        this.sec_mech    = iter.get_value_for_field( "sec_mech" ).get_string();
     }
 
     public void set_fields(Gda.SqlBuilder builder) {
@@ -56,19 +54,17 @@ public class Account : Object {
     public string balance;
     public string currency;
 
-    public static Account from_iter(Gda.DataModelIter iter) {
-        Account account = new Account();
-        account.id           = iter.get_value_for_field( "id" ).get_int();
-        account.user_id      = iter.get_value_for_field( "user_id" ).get_int();
-        account.account_type = iter.get_value_for_field( "account_type" ).dup_string();
-        account.owner_name   = iter.get_value_for_field( "owner_name" ).dup_string();
-        account.account_number  = iter.get_value_for_field( "account_number" ).dup_string();
-        account.bank_code    = iter.get_value_for_field( "bank_code" ).dup_string();
-        account.bic          = iter.get_value_for_field( "bic" ).dup_string();
-        account.iban         = iter.get_value_for_field( "iban" ).dup_string();
-        account.balance      = iter.get_value_for_field( "balance" ).dup_string();
-        account.currency     = iter.get_value_for_field( "currency" ).dup_string();
-        return account;
+    public Account.from_iter(Gda.DataModelIter iter) {
+        this.id           = iter.get_value_for_field( "id" ).get_int();
+        this.user_id      = iter.get_value_for_field( "user_id" ).get_int();
+        this.account_type = iter.get_value_for_field( "account_type" ).dup_string();
+        this.owner_name   = iter.get_value_for_field( "owner_name" ).dup_string();
+        this.account_number  = iter.get_value_for_field( "account_number" ).dup_string();
+        this.bank_code    = iter.get_value_for_field( "bank_code" ).dup_string();
+        this.bic          = iter.get_value_for_field( "bic" ).dup_string();
+        this.iban         = iter.get_value_for_field( "iban" ).dup_string();
+        this.balance      = iter.get_value_for_field( "balance" ).dup_string();
+        this.currency     = iter.get_value_for_field( "currency" ).dup_string();
     }
 
     public void set_fields(Gda.SqlBuilder builder) {
@@ -102,25 +98,23 @@ public class Transaction : Object {
     public string mref { get; set; }
     public string cred { get; set; }
 
-    public static Transaction from_iter(Gda.DataModelIter iter) {
+    public Transaction.from_iter(Gda.DataModelIter iter) {
         Date date = Date();
         date.set_parse(iter.get_value_for_field( "date" ).dup_string());
         Date valuta_date = Date();
         valuta_date.set_parse(iter.get_value_for_field( "valuta_date" ).dup_string());
 
-        Transaction transaction = new Transaction();
-        transaction.id           = iter.get_value_for_field( "id" ).get_int();
-        transaction.account_id   = iter.get_value_for_field( "account_id" ).get_int();
-        transaction.transaction_type  = iter.get_value_for_field( "transaction_type" ).dup_string();
-        transaction.date         = date;
-        transaction.valuta_date  = valuta_date;
-        transaction.amount       = iter.get_value_for_field( "amount" ).get_double();
-        transaction.currency     = iter.get_value_for_field( "currency" ).dup_string();
-        transaction.reference    = iter.get_value_for_field( "reference" ).dup_string();
-        transaction.other_name   = iter.get_value_for_field( "other_name" ).dup_string();
-        transaction.other_iban   = iter.get_value_for_field( "other_iban" ).dup_string();
-        transaction.other_bic    = iter.get_value_for_field( "other_bic" ).dup_string();
-        return transaction;
+        this.id           = iter.get_value_for_field( "id" ).get_int();
+        this.account_id   = iter.get_value_for_field( "account_id" ).get_int();
+        this.transaction_type  = iter.get_value_for_field( "transaction_type" ).dup_string();
+        this.date         = date;
+        this.valuta_date  = valuta_date;
+        this.amount       = iter.get_value_for_field( "amount" ).get_double();
+        this.currency     = iter.get_value_for_field( "currency" ).dup_string();
+        this.reference    = iter.get_value_for_field( "reference" ).dup_string();
+        this.other_name   = iter.get_value_for_field( "other_name" ).dup_string();
+        this.other_iban   = iter.get_value_for_field( "other_iban" ).dup_string();
+        this.other_bic    = iter.get_value_for_field( "other_bic" ).dup_string();
     }
 
     private Gda.SqlBuilderId set_select_field(Gda.SqlBuilder builder, string name, Value value) {
@@ -168,12 +162,10 @@ public class Contact : Object {
     public string iban;
     public string bic;
 
-    public static Contact from_iter(Gda.DataModelIter iter) {
-        var contact = new Contact();
-        contact.name = iter.get_value_for_field( "other_name" ).dup_string();
-        contact.iban = iter.get_value_for_field( "other_iban" ).dup_string();
-        contact.bic  = iter.get_value_for_field( "other_bic" ).dup_string();
-        return contact;
+    public Contact.from_iter(Gda.DataModelIter iter) {
+        this.name = iter.get_value_for_field( "other_name" ).dup_string();
+        this.iban = iter.get_value_for_field( "other_iban" ).dup_string();
+        this.bic  = iter.get_value_for_field( "other_bic" ).dup_string();
     }
 }
 
@@ -193,7 +185,7 @@ public class GBankDatabase : Object {
 
         user_iter.move_next();
 
-        return User.from_iter(user_iter);
+        return new User.from_iter(user_iter);
     }
 
     public List<User> get_users() throws Error {
@@ -203,7 +195,7 @@ public class GBankDatabase : Object {
 
         List<User> list = new List<User>();
         while ( user_iter.move_next() ) {
-            list.append( User.from_iter(user_iter) );
+            list.append( new User.from_iter(user_iter) );
         }
 
         return list;
@@ -236,7 +228,7 @@ public class GBankDatabase : Object {
 
         account_iter.move_next();
 
-        return Account.from_iter(account_iter);
+        return new Account.from_iter(account_iter);
     }
 
     public List<Account> get_accounts_for_user(User user) throws Error {
@@ -245,7 +237,7 @@ public class GBankDatabase : Object {
 
         List<Account> list = new List<Account>();
         while ( account_iter.move_next() ) {
-            list.append( Account.from_iter(account_iter) );
+            list.append( new Account.from_iter(account_iter) );
         }
 
         return list;
@@ -257,7 +249,7 @@ public class GBankDatabase : Object {
 
         List<Transaction> list = new List<Transaction>();
         while ( transaction_iter.move_next() ) {
-            list.append( Transaction.from_iter(transaction_iter) );
+            list.append( new Transaction.from_iter(transaction_iter) );
         }
 
         return list;
@@ -273,7 +265,7 @@ public class GBankDatabase : Object {
 
         List<Contact> list = new List<Contact>();
         while ( contacts_iter.move_next() ) {
-            list.append( Contact.from_iter(contacts_iter) );
+            list.append( new Contact.from_iter(contacts_iter) );
         }
 
         return list;
