@@ -96,6 +96,7 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Gtk.SearchEntry searchentry;
 
     private BankJobWindow bank_job_window;
+    private BankingUI banking_ui;
     private Banking banking;
     private GBankDatabase database;
 
@@ -107,8 +108,9 @@ public class MainWindow : Gtk.ApplicationWindow {
         database = new GBankDatabase();
 
         bank_job_window = new BankJobWindow(this);
+        banking_ui = new BankingUI(this);
 
-        banking = new Banking(bank_job_window);
+        banking = new Banking(banking_ui, bank_job_window);
         banking.status_message.connect(on_status_message);
 
         update_account_list();
@@ -124,6 +126,10 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     public unowned Banking get_banking () {
         return this.banking;
+    }
+
+    public unowned BankingUI get_banking_ui () {
+        return this.banking_ui;
     }
 
     public unowned GBankDatabase get_database () {
@@ -211,6 +217,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                 yield banking.get_balance(user, account, database);
             }
         }
+        banking_ui.reset_password_cache();
     }
 
     [GtkCallback]

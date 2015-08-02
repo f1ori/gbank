@@ -183,6 +183,8 @@ public class CreateUserWizard : Gtk.Assistant {
             }
             this.set_page_complete ( login_page, result );
             this.test_button.set_sensitive( true );
+
+            main_window.get_banking_ui().reset_password_cache();
         });
     }
 

@@ -77,6 +77,8 @@ public class NewTransferDialog : Gtk.Dialog {
             name_entry.get_text(), bic_entry.get_text(), iban_entry.get_text(),
             reference_entry.get_text(), "%.2f".printf(amount_spinbutton.get_value()));
 
+        this.main_window.get_banking_ui().reset_password_cache();
+
         destroy();
     }
 

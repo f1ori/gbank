@@ -1,7 +1,13 @@
 
 interface Job : Object {
-    public abstract User get_user();
+    public abstract User? get_user();
     public abstract void run(Banking banking, GHbci.Context ghbci_context);
+}
+
+public interface IBankingUI : Object {
+    public abstract string get_password(User user);
+    public abstract string get_tan(string hint);
+    public abstract void wrong_password(User user);
 }
 
 class CheckUserJob : Object, Job {
@@ -36,7 +42,7 @@ class CheckUserJob : Object, Job {
         Idle.add((owned) callback);
     }
 
-    public User get_user() {
+    public User? get_user() {
         return this.user;
     }
 }
@@ -68,7 +74,7 @@ class GetStatementsJob : Object, Job {
         Idle.add( (owned) callback );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return this.user;
     }
 }
@@ -97,7 +103,7 @@ class GetBalanceJob : Object, Job {
         Idle.add( (owned) callback );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return this.user;
     }
 }
@@ -141,7 +147,7 @@ class SendTransferJob : Object, Job {
         Idle.add( (owned) callback );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return this.user;
     }
 }
@@ -162,7 +168,7 @@ class ListBanksJob : Object, Job {
         result_queue.push( (owned) banks );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return null;
     }
 }
@@ -180,7 +186,7 @@ class GetBankNameJob : Object, Job {
         result_queue.push( ghbci_context.get_name_for_blz( blz ) );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return null;
     }
 }
@@ -198,7 +204,7 @@ class GetPinTanUrlJob : Object, Job {
         result_queue.push( ghbci_context.get_pin_tan_url_for_blz( blz ) );
     }
 
-    public User get_user() {
+    public User? get_user() {
         return null;
     }
 }
@@ -206,6 +212,7 @@ class GetPinTanUrlJob : Object, Job {
 public class Banking {
     private Thread<bool> thread;
     private BankJobWindow bank_job_window;
+    private IBankingUI banking_ui;
     private GHbci.Context ghbci_context;
     private User? current_user;
     private AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
@@ -214,7 +221,8 @@ public class Banking {
     public signal void status_message(string message);
 
 
-    public Banking(BankJobWindow bank_job_window) {
+    public Banking(IBankingUI banking_ui, BankJobWindow bank_job_window) {
+        this.banking_ui = banking_ui;
         this.bank_job_window = bank_job_window;
         current_user = null;
         jobs = new AsyncQueue<Job>();
@@ -257,7 +265,12 @@ public class Banking {
             case GHbci.Reason.NEED_PASSPHRASE_SAVE:
                 return "42";
             case GHbci.Reason.NEED_PT_PIN:
-                return get_password("Please enter password for %s:".printf(current_user.bank_name));
+                AsyncQueue<string> result = new AsyncQueue<string>();
+                MainContext.default().invoke( () => {
+                    result.push(banking_ui.get_password(current_user));
+                    return Source.REMOVE;
+                });
+                return result.pop();
             case GHbci.Reason.NEED_PT_SECMECH:
                 stdout.printf("sec mech: %s\n", optional);
                 return "962";
@@ -269,8 +282,13 @@ public class Banking {
                         hint.append(" ");
                     }
                 }
-                var prompt = "Please enter tan (%s):".printf(hint.str);
-                return get_password(prompt);
+                string hint_str = hint.str;
+                AsyncQueue<string> result = new AsyncQueue<string>();
+                MainContext.default().invoke( () => {
+                    result.push(banking_ui.get_tan(hint_str));
+                    return Source.REMOVE;
+                });
+                return result.pop();
         }
         return "";
     }
@@ -308,29 +326,6 @@ public class Banking {
             return Source.REMOVE;
         });
         return;
-    }
-
-
-    public string get_password(string prompt) {
-        // TODO: move gui stuff out of this module
-        AsyncQueue<string?> result = new AsyncQueue<string?>();
-        MainContext.default().invoke( () => {
-            string password = null;
-            PasswordDialog dialog = new PasswordDialog(bank_job_window, prompt);
-            switch (dialog.run()) {
-                case Gtk.ResponseType.OK:
-                    password = dialog.password_entry.text;
-                    dialog.destroy();
-                    break;
-                case Gtk.ResponseType.CANCEL:
-                    dialog.destroy();
-                    break;
-            }
-            result.push(password);
-            return Source.REMOVE;
-        });
-
-        return result.pop();
     }
 
     private bool run() {

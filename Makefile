@@ -1,6 +1,8 @@
 VALAFILES=gbank.vala \
 	  password_dialog.vala \
-	  banking.vala database.vala \
+	  banking_ui.vala \
+	  banking.vala \
+	  database.vala \
 	  create_user_wizard.vala \
 	  statement_dialog.vala \
 	  new_transfer_dialog.vala \
