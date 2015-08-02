@@ -94,9 +94,12 @@ public class NewTransferDialog : Gtk.Dialog {
         Account account;
         accounts_liststore.get(iter, 1, out user, 2, out account);
 
+        char[] buffer = new char[15];
+        string amount = amount_spinbutton.get_value().format(buffer, "%.2f");
+
         this.main_window.get_banking().send_transfer(user, account, database,
             name_entry.get_text(), bic_entry.get_text(), iban_entry.get_text(),
-            reference_entry.get_text(), "%.2f".printf(amount_spinbutton.get_value()));
+            reference_entry.get_text(), amount);
 
         this.main_window.get_banking_ui().reset_password_cache();
 
