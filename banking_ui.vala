@@ -44,6 +44,22 @@ public class BankingUI : Object, IBankingUI {
         return run_password_dialog(prompt);
     }
 
+    public string get_flicker_tan(string hint, string flicker_code) {
+        string tan = null;
+
+        FlickerTanDialog dialog = new FlickerTanDialog(main_window, hint, flicker_code);
+        switch (dialog.run()) {
+            case Gtk.ResponseType.OK:
+                tan = dialog.get_tan();
+                dialog.destroy();
+                break;
+            case Gtk.ResponseType.CANCEL:
+                dialog.destroy();
+                break;
+        }
+        return tan;
+    }
+
     public void wrong_password(User user) {
         string key = "%s+%s".printf(user.bank_code, user.user_id);
         password_cache.remove(key);

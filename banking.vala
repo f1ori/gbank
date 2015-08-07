@@ -36,6 +36,7 @@ interface Job : Object {
 public interface IBankingUI : Object {
     public abstract string get_password(User user);
     public abstract string get_tan(string hint);
+    public abstract string get_flicker_tan(string hint, string flicker_code);
     public abstract void wrong_password(User user);
 }
 
@@ -365,7 +366,7 @@ public class Banking {
                 stdout.printf("sec mech: %s\n", optional);
                 return current_user.sec_mech;
             case GHbci.Reason.NEED_PT_TAN:
-                stdout.printf("optional: '%s'", optional);
+                stdout.printf("optional: '%s'\n", optional);
                 var hint = new StringBuilder();
                 foreach(var word in message.split_set("\n \t")) {
                     if (word.length > 0) {
@@ -377,7 +378,11 @@ public class Banking {
                 string password = null;
                 var result = new AsyncQueue<int>();
                 MainContext.default().invoke( () => {
-                    password = banking_ui.get_tan(hint_str);
+                    if (optional != "") {
+                        password = banking_ui.get_flicker_tan(hint_str, optional);
+                    } else {
+                        password = banking_ui.get_tan(hint_str);
+                    }
                     result.push(1);
                     return Source.REMOVE;
                 });

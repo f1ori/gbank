@@ -7,6 +7,7 @@ VALAFILES=gbank.vala \
 	  statement_dialog.vala \
 	  new_transfer_dialog.vala \
 	  user_dialog.vala \
+	  flicker_tan_dialog.vala \
 	  bank_job_window.vala \
 	  main_window.vala
 
