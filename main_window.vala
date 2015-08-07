@@ -23,17 +23,18 @@
  * ListBoxRow for a bank entry in the sidebar
  */
 class BankRow : Gtk.ListBoxRow {
-    private int db_id;
-    private string bank_name;
+    private User user;
 
-    public BankRow( int db_id, string bank_name ) {
-        this.db_id = db_id;
-        this.bank_name = bank_name;
+    public BankRow( MainWindow main_window, User user ) {
+        this.user = user;
 
         Gtk.Label bank_name_label = new Gtk.Label( null );
-        bank_name_label.set_markup( GLib.Markup.printf_escaped( "<b>%s</b>" , bank_name) );
+        bank_name_label.set_markup( GLib.Markup.printf_escaped( "<b>%s</b>" , user.bank_name) );
 
         Gtk.Button edit_button = new Gtk.Button.from_icon_name( "document-properties", Gtk.IconSize.MENU );
+        edit_button.clicked.connect(() => {
+                new UserDialog(main_window, user);
+            });
 
         Gtk.Box box = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 5 );
         box.pack_start( bank_name_label, false, false );
@@ -172,10 +173,7 @@ public class MainWindow : Gtk.ApplicationWindow {
         }
         try {
             foreach (var user in database.get_all_users()) {
-                account_list.add( new BankRow(
-                    user.id,
-                    user.bank_name
-                ) );
+                account_list.add( new BankRow(this, user) );
                 foreach (var account in database.get_accounts_for_user(user) ) {
                     account_list.add( new AccountRow(
                         account.id,

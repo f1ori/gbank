@@ -80,6 +80,36 @@ class CheckUserJob : Object, Job {
 }
 
 /**
+ * job retrieving supported tan methods
+ */
+class GetTanMethodsJob : Object, Job {
+    private User user;
+    private HashTable<string, string>? tan_methods = null;
+    private SourceFunc callback;
+
+    public GetTanMethodsJob(User user, owned SourceFunc callback) {
+        this.user = user;
+        this.callback = (owned) callback;
+    }
+
+    public void run(Banking banking, GHbci.Context ghbci_context) {
+        ghbci_context.add_passport(user.bank_code, user.user_id);
+        tan_methods = ghbci_context.get_tan_methods(user.bank_code, user.user_id);
+
+        // Schedule callback
+        Idle.add((owned) callback);
+    }
+
+    public User? get_user() {
+        return this.user;
+    }
+
+    public HashTable<string, string>? get_result() {
+        return tan_methods;
+    }
+}
+
+/**
  * job to fetch all statements of a bank account
  */
 class GetStatementsJob : Object, Job {
@@ -333,8 +363,9 @@ public class Banking {
                 return password;
             case GHbci.Reason.NEED_PT_SECMECH:
                 stdout.printf("sec mech: %s\n", optional);
-                return "962";
+                return current_user.sec_mech;
             case GHbci.Reason.NEED_PT_TAN:
+                stdout.printf("optional: '%s'", optional);
                 var hint = new StringBuilder();
                 foreach(var word in message.split_set("\n \t")) {
                     if (word.length > 0) {
@@ -414,6 +445,15 @@ public class Banking {
         yield;
         accounts = (owned) local_accounts;
         return true;
+    }
+
+    public async HashTable<string, string> get_tan_methods( User user ) {
+        var tan_methods = null;
+        var job = new GetTanMethodsJob(user, this.get_tan_methods.callback);
+        jobs.push(job);
+
+        yield;
+        return job.get_result();
     }
 
     public List<string> get_bank_list() {

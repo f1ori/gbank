@@ -28,13 +28,14 @@ public class User : Object {
     public string customer_id;
     public string bank_code;
     public string bank_name;
+    public string bic;
     public string country;
     public string token_type;
     public string host;
     public string port;
     public string sec_mech;
     public int hbci_version;
-    public static const string columns = "id, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech";
+    public static const string columns = "id, user_id, customer_id, bank_code, bank_name, bic, country, token_type, host, port, hbci_version, sec_mech";
 
     public User.from_iter(Gda.DataModelIter iter) {
         this.id          = iter.get_value_for_field( "id" ).get_int();
@@ -42,6 +43,7 @@ public class User : Object {
         this.customer_id = iter.get_value_for_field( "customer_id" ).get_string();
         this.bank_code   = iter.get_value_for_field( "bank_code" ).get_string();
         this.bank_name   = iter.get_value_for_field( "bank_name" ).get_string();
+        this.bic         = iter.get_value_for_field( "bic" ).get_string();
         this.country     = iter.get_value_for_field( "country" ).get_string();
         this.token_type  = iter.get_value_for_field( "token_type" ).get_string();
         this.host        = iter.get_value_for_field( "host" ).get_string();
@@ -56,6 +58,7 @@ public class User : Object {
         builder.add_field_value_as_gvalue( "country", this.country );
         builder.add_field_value_as_gvalue( "bank_code", this.bank_code );
         builder.add_field_value_as_gvalue( "bank_name", this.bank_name );
+        builder.add_field_value_as_gvalue( "bic", this.bic );
         builder.add_field_value_as_gvalue( "token_type", this.token_type );
         builder.add_field_value_as_gvalue( "host", this.host );
         builder.add_field_value_as_gvalue( "port", this.port );
@@ -328,6 +331,19 @@ public class GBankDatabase : Object {
         }
     }
 
+    public void save_user(User user) throws Error {
+        var b = new Gda.SqlBuilder(Gda.SqlStatementType.UPDATE);
+        b.set_table("users");
+        user.set_fields( b );
+        var where = b.add_cond( Gda.SqlOperatorType.EQ,
+                                b.add_field_id("id", "users"),
+                                b.add_expr_value( null, user.id ),
+                                0);
+        b.set_where( where );
+
+        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+    }
+
     public void save_account(Account account) throws Error {
         var b = new Gda.SqlBuilder(Gda.SqlStatementType.UPDATE);
         b.set_table("accounts");
@@ -339,13 +355,12 @@ public class GBankDatabase : Object {
         b.set_where( where );
 
         var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
-        stdout.printf( "save account result %d\n", result );
     }
 
     public void create_tables() throws Error {
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS version (version);");
         this.connection.execute_non_select_command("INSERT OR IGNORE INTO version (version) VALUES (1);");
-        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, country, token_type, host, port, hbci_version, sec_mech);");
+        this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, customer_id, bank_code, bank_name, bic, country, token_type, host, port, hbci_version, sec_mech);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id, account_type, owner_name, account_number, bank_code, bic, iban, balance, currency);");
         this.connection.execute_non_select_command("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id, transaction_type, date, valuta_date, amount, currency, reference, other_name, other_iban, other_bic);");
         //this.connection.execute_non_select_command("INSERT OR IGNORE INTO users (id, user_id, customer_id, bank_code, bank_name, country, token_type, server_url, hbci_version, http_version_major, http_version_minor) VALUES(1, 'xxx', 'xxx', 'xxx', 'xxx', 'de', 'pintan', 'xxx', 300, 1, 1);");
