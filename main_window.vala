@@ -259,6 +259,7 @@ public class MainWindow : Gtk.ApplicationWindow {
                 var account_row = row as AccountRow;
                 fill_transactions (account_row.get_id());
             }
+            update_account_list();
             update_all_button.set_image (update_all_image);
             update_all_button.set_sensitive (true);
         });

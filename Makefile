@@ -30,4 +30,4 @@ clean:
 	rm -f gbank *.vala.c resources.c
 
 clean-db:
-	rm -f gbank.db.db passport-file.properties
+	rm -f gbank.db.db passport-*+*.dat
