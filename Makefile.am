@@ -1,3 +1,3 @@
-SUBDIRS = src ui
+SUBDIRS = src ui data
 EXTRA_DIST = resources.xml
 

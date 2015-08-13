@@ -231,9 +231,10 @@ public class MainWindow : Gtk.ApplicationWindow {
             "version", "0.1",
             "copyright", ("Copyright © 2015 Florian Richter"),
             "authors", authors,
-            "website", "http://gbank.github.com/",
+            "website", "http://gbank.f1ori.de/",
             "website-label", ("Website"),
-            "license", "GPL"
+            "license-type", Gtk.License.GPL_3_0,
+            "logo-icon-name", "gbank"
         );
     }
 

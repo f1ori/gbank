@@ -57,6 +57,9 @@ AC_SUBST(GBANK_VALA_FLAGS)
 AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 
 AC_CONFIG_FILES([Makefile
+                 data/Makefile
+                 data/icons/Makefile
+                 ui/Makefile
                  src/Makefile])
 
 AC_OUTPUT
