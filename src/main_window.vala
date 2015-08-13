@@ -108,19 +108,11 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Gtk.ListBoxRow all_accounts_row;
 
     [GtkChild]
-    private Gtk.Statusbar statusbar;
-
-    [GtkChild]
     private Gtk.Button update_all_button;
     [GtkChild]
     private Gtk.Image update_all_image;
     [GtkChild]
     private Gtk.Spinner update_all_spinner;
-
-    [GtkChild]
-    private Gtk.Image open_progress_image;
-    [GtkChild]
-    private Gtk.Image close_progress_image;
 
     [GtkChild]
     private Gtk.SearchEntry searchentry;
@@ -280,14 +272,8 @@ public class MainWindow : Gtk.ApplicationWindow {
     void on_update_accounts () {
         update_all_button.set_image (update_all_spinner);
         update_all_button.set_sensitive (false);
-        statusbar.push(statusbar.get_context_id("hbci"), "Connecting...");
+
         update_accounts.begin ((obj, res) => {
-            // TODO: properly update lists
-            var row = account_list.get_selected_row ();
-            if (row is AccountRow) {
-                var account_row = row as AccountRow;
-                fill_transactions (account_row.get_id());
-            }
             update_all_button.set_image (update_all_image);
             update_all_button.set_sensitive (true);
         });
@@ -306,22 +292,8 @@ public class MainWindow : Gtk.ApplicationWindow {
         }
     }
 
-    [GtkCallback]
-    void on_open_progress_button_toggled(Gtk.ToggleButton toggle_button) {
-        if (toggle_button.get_active()) {
-            bank_job_window.show();
-            toggle_button.set_image(close_progress_image);
-        } else {
-            bank_job_window.hide();
-            toggle_button.set_image(open_progress_image);
-        }
-    }
-
     void on_status_message(string message) {
         stdout.printf("statuuuuuuuuuuus: %s\n", message);
-        uint context_id = statusbar.get_context_id( "hbci" );
-        statusbar.remove_all( context_id );
-        statusbar.push( context_id, message );
     }
 
     [GtkCallback]
