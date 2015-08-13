@@ -47,112 +47,68 @@
     <property name="default_width">1100</property>
     <property name="default_height">700</property>
     <child>
-      <object class="GtkBox" id="status_box">
+      <object class="GtkOverlay" id="overlay">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox" id="main_box">
+          <object class="GtkBox" id="status_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="spacing">5</property>
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkListBox" id="account_list">
-                <property name="width_request">230</property>
+              <object class="GtkBox" id="main_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <signal name="row-activated" handler="on_row_activated" swapped="no"/>
+                <property name="spacing">5</property>
                 <child>
-                  <object class="GtkListBoxRow" id="all_accounts_row">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <child>
-                      <object class="GtkBox" id="all_accounts_box">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="spacing">20</property>
-                        <child>
-                          <object class="GtkLabel" id="all_accounts_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">All Accounts</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="add_account_button">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="image">add_image</property>
-                            <signal name="clicked" handler="on_create_user" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="pack_type">end</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkBox" id="account_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkBox" id="account_head_box">
+                  <object class="GtkListBox" id="account_list">
+                    <property name="width_request">230</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="margin_left">5</property>
-                    <property name="margin_right">5</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="spacing">5</property>
+                    <signal name="row-activated" handler="on_row_activated" swapped="no"/>
                     <child>
-                      <object class="GtkButton" id="transfer_button">
-                        <property name="label" translatable="yes">Transfer</property>
+                      <object class="GtkListBoxRow" id="all_accounts_row">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_transfer_button_clicked" swapped="no"/>
+                        <child>
+                          <object class="GtkBox" id="all_accounts_box">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="margin_left">5</property>
+                            <property name="margin_right">5</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
+                            <property name="spacing">20</property>
+                            <child>
+                              <object class="GtkLabel" id="all_accounts_label">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">All Accounts</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="add_account_button">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="image">add_image</property>
+                                <signal name="clicked" handler="on_create_user" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="pack_type">end</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
                       </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="standing_orders_button">
-                        <property name="label" translatable="yes">Standing Orders</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -162,90 +118,145 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="transactions_scrolled">
+                  <object class="GtkBox" id="account_box">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="shadow_type">in</property>
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkTreeView" id="transactions_treeview">
+                      <object class="GtkBox" id="account_head_box">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="margin_left">5</property>
+                        <property name="margin_right">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+                        <property name="spacing">5</property>
+                        <child>
+                          <object class="GtkButton" id="transfer_button">
+                            <property name="label" translatable="yes">Transfer</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <signal name="clicked" handler="on_transfer_button_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="standing_orders_button">
+                            <property name="label" translatable="yes">Standing Orders</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="transactions_scrolled">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="model">transactions_liststore_filtered</property>
-                        <property name="enable_search">False</property>
-                        <property name="show_expanders">False</property>
-                        <signal name="row-activated" handler="on_transactions_treeview_row_activated" swapped="no"/>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection1"/>
-                        </child>
+                        <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeViewColumn" id="date_column">
-                            <property name="sizing">fixed</property>
-                            <property name="title" translatable="yes">Date</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="DateCellRenderer"/>
-                              <attributes>
-                                <attribute name="markup">0</attribute>
-                              </attributes>
+                          <object class="GtkTreeView" id="transactions_treeview">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="model">transactions_liststore_filtered</property>
+                            <property name="enable_search">False</property>
+                            <property name="show_expanders">False</property>
+                            <signal name="row-activated" handler="on_transactions_treeview_row_activated" swapped="no"/>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection" id="treeview-selection1"/>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="type_column">
-                            <property name="resizable">True</property>
-                            <property name="sizing">fixed</property>
-                            <property name="title" translatable="yes">Type</property>
                             <child>
-                              <object class="GtkCellRendererText" id="TypeCellRenderer">
-                                <property name="wrap_mode">word-char</property>
-                                <property name="wrap_width">200</property>
+                              <object class="GtkTreeViewColumn" id="date_column">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Date</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="DateCellRenderer"/>
+                                  <attributes>
+                                    <attribute name="markup">0</attribute>
+                                  </attributes>
+                                </child>
                               </object>
-                              <attributes>
-                                <attribute name="markup">1</attribute>
-                              </attributes>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="purpose_column">
-                            <property name="resizable">True</property>
-                            <property name="sizing">fixed</property>
-                            <property name="title" translatable="yes">Purpose</property>
                             <child>
-                              <object class="GtkCellRendererText" id="PurposeCellRenderer">
-                                <property name="wrap_mode">word-char</property>
-                                <property name="wrap_width">300</property>
+                              <object class="GtkTreeViewColumn" id="type_column">
+                                <property name="resizable">True</property>
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Type</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="TypeCellRenderer">
+                                    <property name="wrap_mode">word-char</property>
+                                    <property name="wrap_width">200</property>
+                                  </object>
+                                  <attributes>
+                                    <attribute name="markup">1</attribute>
+                                  </attributes>
+                                </child>
                               </object>
-                              <attributes>
-                                <attribute name="markup">2</attribute>
-                              </attributes>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="amount_column">
-                            <property name="sizing">fixed</property>
-                            <property name="title" translatable="yes">Amount</property>
                             <child>
-                              <object class="GtkCellRendererText" id="AmountCellRenderer"/>
-                              <attributes>
-                                <attribute name="markup">3</attribute>
-                              </attributes>
+                              <object class="GtkTreeViewColumn" id="purpose_column">
+                                <property name="resizable">True</property>
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Purpose</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="PurposeCellRenderer">
+                                    <property name="wrap_mode">word-char</property>
+                                    <property name="wrap_width">300</property>
+                                  </object>
+                                  <attributes>
+                                    <attribute name="markup">2</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="balance_column">
-                            <property name="sizing">fixed</property>
-                            <property name="title" translatable="yes">Balance</property>
                             <child>
-                              <object class="GtkCellRendererText" id="BalanceCellRenderer"/>
-                              <attributes>
-                                <attribute name="markup">4</attribute>
-                              </attributes>
+                              <object class="GtkTreeViewColumn" id="amount_column">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Amount</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="AmountCellRenderer"/>
+                                  <attributes>
+                                    <attribute name="markup">3</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="balance_column">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Balance</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="BalanceCellRenderer"/>
+                                  <attributes>
+                                    <attribute name="markup">4</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
                             </child>
                           </object>
                         </child>
                       </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -258,47 +269,45 @@
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">0</property>
               </packing>
             </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkStatusbar" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="margin_start">10</property>
-            <property name="margin_end">10</property>
-            <property name="margin_top">6</property>
-            <property name="margin_bottom">6</property>
-            <property name="spacing">2</property>
             <child>
-              <object class="GtkToggleButton" id="open_progress_button">
+              <object class="GtkStatusbar" id="statusbar">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="image">open_progress_image</property>
-                <signal name="toggled" handler="on_open_progress_button_toggled" swapped="no"/>
+                <property name="can_focus">False</property>
+                <property name="margin_left">10</property>
+                <property name="margin_right">10</property>
+                <property name="margin_start">10</property>
+                <property name="margin_end">10</property>
+                <property name="margin_top">6</property>
+                <property name="margin_bottom">6</property>
+                <property name="spacing">2</property>
+                <child>
+                  <object class="GtkToggleButton" id="open_progress_button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="image">open_progress_image</property>
+                    <signal name="toggled" handler="on_open_progress_button_toggled" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
+            <property name="index">-1</property>
           </packing>
         </child>
       </object>

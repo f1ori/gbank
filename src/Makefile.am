@@ -7,6 +7,7 @@ gbank_SOURCES = resources.c \
 		bank_job_window.vala \
 		database.vala \
 		gbank.vala \
+		notifications.vala \
 		new_transfer_dialog.vala \
 		statement_dialog.vala \
 		banking.vala \

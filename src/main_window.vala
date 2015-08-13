@@ -125,6 +125,11 @@ public class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     private Gtk.SearchEntry searchentry;
 
+    [GtkChild]
+    private Gtk.Overlay overlay;
+
+    private NotificationQueue notification_queue;
+
     private BankJobWindow bank_job_window;
     private BankingUI banking_ui;
     private Banking banking;
@@ -134,6 +139,9 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     public MainWindow (Gtk.Application app) {
         Object (application: app);
+
+        notification_queue = new NotificationQueue();
+        overlay.add_overlay(notification_queue.widget);
 
         database = new GBankDatabase();
 
@@ -239,12 +247,32 @@ public class MainWindow : Gtk.ApplicationWindow {
     }
 
     async void update_accounts() {
+        var notification = new SpinnerNotification("Update accounts...");
+        this.notification_queue.add_notification(notification);
+
         foreach (var user in database.get_all_users() ) {
             foreach (var account in database.get_accounts_for_user(user)) {
-                yield banking.fetch_transactions(user, account, database);
+
+                var text = "Fetch balance from %s %s".printf(user.bank_name, account.account_type);
+                notification.set_label(text);
                 yield banking.get_balance(user, account, database);
+                update_account_list();
+
+                text = "Fetch transactions from %s %s".printf(user.bank_name, account.account_type);
+                notification.set_label(text);
+                yield banking.fetch_transactions(user, account, database);
+
+                // update transaction list
+                var row = account_list.get_selected_row();
+                if (row is AccountRow) {
+                    var account_row = row as AccountRow;
+                    if (account_row.get_id() == account.id) {
+                        fill_transactions (account.id);
+                    }
+                }
             }
         }
+        notification.close();
         banking_ui.reset_password_cache();
     }
 
@@ -260,7 +288,6 @@ public class MainWindow : Gtk.ApplicationWindow {
                 var account_row = row as AccountRow;
                 fill_transactions (account_row.get_id());
             }
-            update_account_list();
             update_all_button.set_image (update_all_image);
             update_all_button.set_sensitive (true);
         });
