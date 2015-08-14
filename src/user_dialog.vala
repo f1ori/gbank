@@ -39,8 +39,6 @@ public class UserDialog : Gtk.Dialog {
         this.set_transient_for (main_window);
         this.user = user;
 
-        var database = main_window.get_database();
-
         this.name_entry.text = user.bank_name;
         this.bic_entry.text = user.bank_code;
 

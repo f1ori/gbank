@@ -453,7 +453,6 @@ public class Banking {
     }
 
     public async HashTable<string, string> get_tan_methods( User user ) {
-        var tan_methods = null;
         var job = new GetTanMethodsJob(user, this.get_tan_methods.callback);
         jobs.push(job);
 
@@ -521,7 +520,7 @@ public class Banking {
     public async void send_transfer(User user, Account account, GBankDatabase db,
             string destination_name, string destination_bic, string destination_iban,
             string reference, string amount) throws Error {
-        Value result = new Value(typeof(bool));
+        Value result = Value(typeof(bool));
         jobs.push( new SendTransferJob( user, account, ref result, send_transfer.callback,
                 destination_name, destination_bic, destination_iban, reference, amount) );
 

@@ -132,7 +132,7 @@ public class MainWindow : Gtk.ApplicationWindow {
     public MainWindow (Gtk.Application app) {
         Object (application: app);
 
-        this.set_default_icon_name("gbank");
+        set_default_icon_name("gbank");
 
         notification_queue = new NotificationQueue();
         overlay.add_overlay(notification_queue.widget);

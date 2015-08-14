@@ -97,7 +97,7 @@ public class NewTransferDialog : Gtk.Dialog {
         char[] buffer = new char[15];
         string amount = amount_spinbutton.get_value().format(buffer, "%.2f");
 
-        this.main_window.get_banking().send_transfer(user, account, database,
+        this.main_window.get_banking().send_transfer.begin(user, account, database,
             name_entry.get_text(), bic_entry.get_text(), iban_entry.get_text(),
             reference_entry.get_text(), amount);
 

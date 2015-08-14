@@ -316,7 +316,6 @@ public class GBankDatabase : Object {
         var builder = new Gda.SqlBuilder(Gda.SqlStatementType.SELECT);
         builder.select_add_target("transactions", null);
         transaction.set_select_fields(builder);
-        Gda.SqlBuilderId[] count_arguments = {builder.add_id("*")};
         builder.select_add_field("*", "transactions", null);
         var result = this.connection.statement_execute_select(builder.get_statement(), null);
 
@@ -341,7 +340,7 @@ public class GBankDatabase : Object {
                                 0);
         b.set_where( where );
 
-        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        this.connection.statement_execute_non_select(b.get_statement(), null, null);
     }
 
     public void save_account(Account account) throws Error {
@@ -354,7 +353,7 @@ public class GBankDatabase : Object {
                                 0);
         b.set_where( where );
 
-        var result = this.connection.statement_execute_non_select(b.get_statement(), null, null);
+        this.connection.statement_execute_non_select(b.get_statement(), null, null);
     }
 
     public void create_tables() throws Error {
