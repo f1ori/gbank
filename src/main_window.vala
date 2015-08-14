@@ -77,7 +77,7 @@ class AccountRow : Gtk.ListBoxRow {
         vbox.pack_start( number_label, false, false);
 
         Gtk.Box box = new Gtk.Box( Gtk.Orientation.HORIZONTAL, 5 );
-        box.pack_start( new Gtk.Arrow(Gtk.ArrowType.RIGHT, Gtk.ShadowType.ETCHED_IN), false, false );
+        box.pack_start( new Gtk.Image.from_icon_name("pan-end-symbolic", Gtk.IconSize.MENU), false, false);
         box.pack_start( vbox, false, false );
         box.pack_end( balance_label , false, false );
 
