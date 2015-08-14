@@ -320,6 +320,7 @@ public class Banking {
     private GHbci.Context ghbci_context;
     private User? current_user;
     private AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
+    private string password;
 
     public signal void log(string message, int64 level);
     public signal void status_message(string message);
@@ -329,6 +330,13 @@ public class Banking {
         this.banking_ui = banking_ui;
         this.bank_job_window = bank_job_window;
         current_user = null;
+        // generate random password for passport files
+        // not cryptographicly safe!
+        var pw = new StringBuilder();
+        for(int i = 0; i < 15; i++) {
+            pw.append("%x".printf(Random.int_range(0, 15)));
+        }
+        password = pw.str;
         jobs = new AsyncQueue<Job>();
         thread = new Thread<bool>("banking", run);
     }
@@ -370,9 +378,9 @@ public class Banking {
                 return "Base64";
             // TODO: encrypt everything with a master password
             case GHbci.Reason.NEED_PASSPHRASE_LOAD:
-                return "42";
+                return this.password;
             case GHbci.Reason.NEED_PASSPHRASE_SAVE:
-                return "42";
+                return this.password;
             case GHbci.Reason.NEED_PT_PIN:
                 string password = null;
                 var result = new AsyncQueue<int>();
