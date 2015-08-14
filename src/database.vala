@@ -214,7 +214,12 @@ public class GBankDatabase : Object {
     private Gda.Connection connection;
 
     public GBankDatabase() throws Error {
-        this.connection = Gda.Connection.open_from_string (null, "SQLite://DB_DIR=.;DB_NAME=gbank.db", null, Gda.ConnectionOptions.NONE);
+        var dir = Path.build_filename(Environment.get_user_config_dir(), "gbank");
+        var file = File.new_for_path(dir);
+        if (file.query_file_type(FileQueryInfoFlags.NOFOLLOW_SYMLINKS) != FileType.DIRECTORY) {
+            file.make_directory();
+        }
+        this.connection = Gda.Connection.open_from_string (null, "SQLite://DB_DIR=%s;DB_NAME=gbank".printf(dir), null, Gda.ConnectionOptions.NONE);
         create_tables();
     }
 
