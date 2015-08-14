@@ -156,6 +156,12 @@ public class MainWindow : Gtk.ApplicationWindow {
         this.add_action (about_action);
     }
 
+    protected override void destroy() {
+        base.destroy();
+        banking.stop();
+        database = null;
+    }
+
     public unowned Banking get_banking () {
         return this.banking;
     }

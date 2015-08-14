@@ -292,6 +292,22 @@ class GetPinTanUrlJob : Object, Job {
 }
 
 /**
+ * sentinel to stop job processing for shutdown
+ */
+class StopJob : Object, Job {
+
+    public StopJob() {
+    }
+
+    public void run( Banking banking, GHbci.Context ghbci_context ) {
+    }
+
+    public User? get_user() {
+        return null;
+    }
+}
+
+/**
  * Capsules a hbci4java-glib context
  *
  * Provides async and sync methods for online banking and handles callbacks.
@@ -315,6 +331,11 @@ public class Banking {
         current_user = null;
         jobs = new AsyncQueue<Job>();
         thread = new Thread<bool>("banking", run);
+    }
+
+    public void stop() {
+        jobs.push(new StopJob());
+        thread.join();
     }
 
     void on_ghbci_log (string message, int64 level) {
@@ -428,7 +449,7 @@ public class Banking {
     }
 
     private bool run() {
-        ghbci_context = new GHbci.Context();
+        ghbci_context = new GHbci.Context(Environment.get_tmp_dir());
 
         ghbci_context.callback.connect( on_ghbci_callback );
         ghbci_context.log.connect( on_ghbci_log );
@@ -436,10 +457,15 @@ public class Banking {
 
         while(true) {
             Job job = jobs.pop ();
+            if (job is StopJob) {
+                break;
+            }
             this.current_user = job.get_user();
             job.run(this, ghbci_context);
             this.current_user = null;
         }
+        ghbci_context = null;
+        return true;
     }
 
     public async bool check_user( User user, out Gee.ArrayList<Account> accounts) {
