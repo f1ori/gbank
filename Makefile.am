@@ -1,3 +1,3 @@
 SUBDIRS = src ui data
-EXTRA_DIST = resources.xml
+EXTRA_DIST = resources.xml README.md
 
