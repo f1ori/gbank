@@ -47,7 +47,7 @@ public class NewTransferDialog : Gtk.Dialog {
         this.main_window = main_window;
         this.set_transient_for (main_window);
 
-        var database = main_window.get_database();
+        var database = (main_window.application as GBank).getDatabase();
         try {
             foreach (var user in database.get_all_users()) {
                 foreach (var account in database.get_accounts_for_user(user) ) {
@@ -85,7 +85,8 @@ public class NewTransferDialog : Gtk.Dialog {
 
     [GtkCallback]
     public void on_send_button_clicked() {
-        var database = this.main_window.get_database();
+        var database = (this.main_window.application as GBank).getDatabase();
+        var banking = (this.main_window.application as GBank).getBanking();
 
         Gtk.TreeIter iter;
         account_combobox.get_active_iter(out iter);
@@ -97,7 +98,7 @@ public class NewTransferDialog : Gtk.Dialog {
         char[] buffer = new char[15];
         string amount = amount_spinbutton.get_value().format(buffer, "%.2f");
 
-        this.main_window.get_banking().send_transfer.begin(user, account, database,
+        banking.send_transfer.begin(user, account, database,
             name_entry.get_text(), bic_entry.get_text(), iban_entry.get_text(),
             reference_entry.get_text(), amount);
 

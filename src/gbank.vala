@@ -19,6 +19,12 @@
  * main application object
  */
 class GBank : Gtk.Application {
+    private Banking banking;
+    private GBankDatabase database;
+
+    private BankingUI banking_ui;
+    private MainWindow main_window;
+
     public GBank () {
         Object (application_id: "com.github.gbank", flags: GLib.ApplicationFlags.FLAGS_NONE);
     }
@@ -35,11 +41,41 @@ class GBank : Gtk.Application {
         var quit_action = new GLib.SimpleAction ("quit", null);
         quit_action.activate.connect (this.quit);
         this.add_action (quit_action);
+
+        try {
+            // setup main components
+            database = new GBankDatabase();
+            banking = new Banking();
+            main_window = new MainWindow (this);
+            banking_ui = new BankingUI(main_window);
+
+            main_window.set_banking_ui(banking_ui);
+            banking.set_banking_ui(banking_ui);
+       } catch (Error e) {
+            new Gtk.MessageDialog (null,
+                Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
+                "Creation failed: %s", e.message).run();
+            error("Creation failed: %s", e.message);
+        }
     }
 
     protected override void activate () {
-        var main_window = new MainWindow (this);
         main_window.present();
+    }
+
+    protected override void shutdown () {
+        base.shutdown();
+
+        banking.stop();
+    }
+
+    public unowned GBankDatabase getDatabase() {
+        return database;
+    }
+
+    public unowned Banking getBanking() {
+        return banking;
     }
 }
 

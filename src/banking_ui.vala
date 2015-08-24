@@ -84,4 +84,11 @@ public class BankingUI : Object, IBankingUI {
     public void reset_password_cache() {
         password_cache.remove_all();
     }
+
+    public void add_log_line(string line) {
+    }
+
+    public void add_status_line (string line) {
+    }
+
 }

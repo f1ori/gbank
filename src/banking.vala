@@ -38,6 +38,8 @@ public interface IBankingUI : Object {
     public abstract string get_tan(string hint);
     public abstract string get_flicker_tan(string hint, string flicker_code);
     public abstract void wrong_password(User user);
+    public abstract void add_log_line(string line);
+    public abstract void add_status_line (string line);
 }
 
 /**
@@ -315,8 +317,8 @@ class StopJob : Object, Job {
  */
 public class Banking {
     private Thread<bool> thread;
-    private BankJobWindow bank_job_window;
     private IBankingUI banking_ui;
+
     private GHbci.Context ghbci_context;
     private User? current_user;
     private AsyncQueue<Job> jobs = new AsyncQueue<Job> ();
@@ -326,9 +328,7 @@ public class Banking {
     public signal void status_message(string message);
 
 
-    public Banking(IBankingUI banking_ui, BankJobWindow bank_job_window) {
-        this.banking_ui = banking_ui;
-        this.bank_job_window = bank_job_window;
+    public Banking() {
         current_user = null;
         // generate random password for passport files
         // not cryptographicly safe!
@@ -348,7 +348,7 @@ public class Banking {
 
     void on_ghbci_log (string message, int64 level) {
         MainContext.default().invoke( () => {
-            bank_job_window.add_log_line(message);
+            banking_ui.add_log_line(message);
             stdout.printf("log: %s\n", message);
             return Source.REMOVE;
         });
@@ -448,7 +448,7 @@ public class Banking {
             }
             if (description != "") {
                 status_message(description);
-                bank_job_window.add_status_line(description);
+                banking_ui.add_status_line(description);
                 stdout.printf("status: %s\n", description);
             }
             return Source.REMOVE;
@@ -559,5 +559,9 @@ public class Banking {
                 destination_name, destination_bic, destination_iban, reference, amount) );
 
         yield;
+    }
+
+    public void set_banking_ui(IBankingUI banking_ui) {
+        this.banking_ui = banking_ui;
     }
 }

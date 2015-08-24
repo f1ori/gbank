@@ -62,8 +62,10 @@ public class CreateUserWizard : Gtk.Assistant {
         this.main_window = main_window;
         this.set_transient_for (main_window);
 
-        main_window.get_banking().get_bank_list().foreach( (blz) => {
-            var bank_name = main_window.get_banking().get_name_for_blz(blz);
+        var banking = (this.main_window.application as GBank).getBanking();
+
+        banking.get_bank_list().foreach( (blz) => {
+            var bank_name = banking.get_name_for_blz(blz);
             Gtk.TreeIter iter;
             bank_liststore.append(out iter);
             bank_liststore.set (iter,
@@ -83,8 +85,9 @@ public class CreateUserWizard : Gtk.Assistant {
 
     [GtkCallback]
     public void on_close() {
+        var database = (this.main_window.application as GBank).getDatabase();
         // save
-        main_window.get_database().insert_user(ref user);
+        database.insert_user(ref user);
 
         Gtk.TreeIter iter;
         for (bool next = accounts_liststore.get_iter_first (out iter); next; next = accounts_liststore.iter_next (ref iter)) {
@@ -95,7 +98,7 @@ public class CreateUserWizard : Gtk.Assistant {
                 accounts_liststore.get_value (iter, AccountListColumns.ACCOUNT, out gvalue_account);
                 Account account = gvalue_account.get_object() as Account;
                 account.user_id = user.id;
-                main_window.get_database().insert_account( ref account );
+                database.insert_account( ref account );
             }
         }
         main_window.update_account_list();
@@ -141,6 +144,8 @@ public class CreateUserWizard : Gtk.Assistant {
 
     [GtkCallback]
     public void on_test_button_clicked() {
+        var banking = (this.main_window.application as GBank).getBanking();
+
         Gtk.TreeModel model;
         Gtk.TreeIter iter;
         this.bank_list.get_selection().get_selected(out model, out iter);
@@ -166,7 +171,7 @@ public class CreateUserWizard : Gtk.Assistant {
         //    return;
         //}
 
-        string url = main_window.get_banking().get_pin_tan_url_for_blz(blz);
+        string url = banking.get_pin_tan_url_for_blz(blz);
         // TODO: ask user, if unknown
         if (url.length > 8) {
             // remove https://
@@ -188,9 +193,9 @@ public class CreateUserWizard : Gtk.Assistant {
 
         accounts_liststore.clear();
 
-        this.main_window.get_banking().check_user.begin( user , (obj, res) => {
+        banking.check_user.begin( user , (obj, res) => {
             Gee.List<Account> accounts;
-            var result = this.main_window.get_banking().check_user.end(res, out accounts);
+            var result = banking.check_user.end(res, out accounts);
             foreach ( Account account in accounts ) {
                 stdout.printf( "%s\n", account.account_number );
 

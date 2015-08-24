@@ -122,10 +122,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
     private NotificationQueue notification_queue;
 
-    private BankJobWindow bank_job_window;
-    private BankingUI banking_ui;
-    private Banking banking;
-    private GBankDatabase database;
+    private unowned BankingUI banking_ui;
 
     private Account current_account = null;
 
@@ -136,14 +133,6 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         notification_queue = new NotificationQueue();
         overlay.add_overlay(notification_queue.widget);
-
-        database = new GBankDatabase();
-
-        bank_job_window = new BankJobWindow(this);
-        banking_ui = new BankingUI(this);
-
-        banking = new Banking(banking_ui, bank_job_window);
-        banking.status_message.connect(on_status_message);
 
         update_account_list();
         fill_transactions(1);
@@ -156,25 +145,16 @@ public class MainWindow : Gtk.ApplicationWindow {
         this.add_action (about_action);
     }
 
-    protected override void destroy() {
-        base.destroy();
-        banking.stop();
-        database = null;
-    }
-
-    public unowned Banking get_banking () {
-        return this.banking;
+    public void set_banking_ui(BankingUI banking_ui) {
+        this.banking_ui = banking_ui;
     }
 
     public unowned BankingUI get_banking_ui () {
         return this.banking_ui;
     }
 
-    public unowned GBankDatabase get_database () {
-        return this.database;
-    }
-
     public void update_account_list() {
+        var database = (this.application as GBank).getDatabase();
         foreach(var row in account_list.get_children()) {
             if (row != this.all_accounts_row)
                 row.destroy();
@@ -198,6 +178,7 @@ public class MainWindow : Gtk.ApplicationWindow {
     }
 
     public void fill_transactions(int account_id) {
+        var database = (this.application as GBank).getDatabase();
         try {
             transactions_liststore.clear();
 
@@ -247,6 +228,9 @@ public class MainWindow : Gtk.ApplicationWindow {
     }
 
     async void update_accounts() {
+        var database = (this.application as GBank).getDatabase();
+        var banking = (this.application as GBank).getBanking();
+
         var notification = new SpinnerNotification("Update accounts...");
         this.notification_queue.add_notification(notification);
 
@@ -298,10 +282,6 @@ public class MainWindow : Gtk.ApplicationWindow {
             var account_row = row as AccountRow;
             fill_transactions(account_row.get_id());
         }
-    }
-
-    void on_status_message(string message) {
-        stdout.printf("statuuuuuuuuuuus: %s\n", message);
     }
 
     [GtkCallback]

@@ -54,7 +54,7 @@ public class UserDialog : Gtk.Dialog {
 
     [GtkCallback]
     public void on_value_changed() {
-        var database = main_window.get_database();
+        var database = (this.main_window.application as GBank).getDatabase();
 
         Gtk.TreeIter iter;
         if (tan_method_combobox.get_active_iter(out iter)) {
@@ -70,8 +70,8 @@ public class UserDialog : Gtk.Dialog {
 
     [GtkCallback]
     public void on_update_tan_methods_button_clicked() {
+        var banking = (this.main_window.application as GBank).getBanking();
 
-        var banking = main_window.get_banking();
         banking.get_tan_methods.begin(user, (obj, res) => {
                 var tan_methods = banking.get_tan_methods.end(res);
                 tan_methods_liststore.clear();
